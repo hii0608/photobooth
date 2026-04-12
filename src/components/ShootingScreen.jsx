@@ -8,7 +8,7 @@ import styles from './ShootingScreen.module.css';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const RECORD_AFTER_CAPTURE_MS = 2_200;
+const RECORD_AFTER_CAPTURE_MS = 100; // TEST: 딜레이 최소화 (원래: 2_200)
 
 /**
  * 슬롯당 2번 촬영. 각 촬영마다 ~5초 클립 녹화.
@@ -40,7 +40,7 @@ export default function ShootingScreen({
   const rafRef           = useRef(null);
   const shootingRef      = useRef(false);
 
-  const totalShots = layout.total * 2;
+  const totalShots = layout.total; // TEST: 슬롯당 1컷 (원래: layout.total * 2)
 
   const [currentShot, setCurrentShot] = useState(0);
   const [countdown, setCountdown]     = useState(null);

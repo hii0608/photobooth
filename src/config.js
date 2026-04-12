@@ -4,7 +4,7 @@
 
 export const CHROMA_COLOR     = { r: 0, g: 197, b: 0 };
 export const CHROMA_THRESHOLD = 55;
-export const COUNTDOWN_FROM   = 3;
+export const COUNTDOWN_FROM   = 0; // TEST: 카운트다운 없음 (원래: 3)
 
 // ============================================================
 //  LAYOUTS
@@ -22,13 +22,13 @@ export const LAYOUTS = [
   // ── 세로형 (portrait) — 가로개수 × 세로개수 표기 ───────────
   {
     id         : '1x4',
-    label      : '1 × 4',      // 가로 1칸 × 세로 4칸
+    label      : '1 × 4',      // 가로 1칸 × 세로 4칸 (개별 슬롯은 와이드형)
     cols       : 1,
     rows       : 4,
     total      : 4,
     folder     : '1_4',
     orientation: 'portrait',
-    photoRatio : 3 / 4,
+    photoRatio : 4 / 3,
   },
   {
     id         : '2x3',
@@ -38,7 +38,7 @@ export const LAYOUTS = [
     total      : 6,
     folder     : '2_3',
     orientation: 'portrait',
-    photoRatio : 3 / 4,
+    photoRatio : 4 / 3,
   },
   {
     id         : '2x2_v',
@@ -58,21 +58,11 @@ export const LAYOUTS = [
     total      : 3,
     folder     : '1_3',
     orientation: 'portrait',
-    photoRatio : 3 / 4,
+    photoRatio : 4 / 3,
   },
 
   // ── 가로형 (landscape) — 가로개수 × 세로개수 표기 ──────────
-  {
-    id         : '4x1',
-    label      : '4 × 1',      // 가로 4칸 × 세로 1칸
-    cols       : 4,
-    rows       : 1,
-    total      : 4,
-    folder     : '4_1',
-    orientation: 'landscape',
-    photoRatio : 4 / 3,
-  },
-  {
+{
     id         : '3x1',
     label      : '3 × 1',      // 가로 3칸 × 세로 1칸
     cols       : 3,
@@ -80,7 +70,7 @@ export const LAYOUTS = [
     total      : 3,
     folder     : '3_1',
     orientation: 'landscape',
-    photoRatio : 4 / 3,
+    photoRatio : 3 / 4,
   },
   {
     id         : '2x2_h',

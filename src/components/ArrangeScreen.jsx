@@ -21,10 +21,15 @@ export default function ArrangeScreen({ capturedBySlot, videos, layout, onConfir
     [allPhotos],
   );
 
-  // 각 슬롯의 기본 선택: 해당 슬롯의 1번째 촬영 인덱스
-  const [selected, setSelected] = useState(
-    () => Array.from({ length: capturedBySlot.length }, (_, i) => i * 2),
-  );
+  // 각 슬롯의 기본 선택: 해당 슬롯의 첫 번째 촬영 인덱스 (컷 수 무관)
+  const [selected, setSelected] = useState(() => {
+    let offset = 0;
+    return capturedBySlot.map((takes) => {
+      const idx = offset;
+      offset += takes.length;
+      return idx;
+    });
+  });
 
   const handleSelect = (slotIdx, photoIdx) => {
     setSelected((prev) => {
