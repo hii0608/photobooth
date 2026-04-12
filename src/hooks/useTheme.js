@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CHROMA_COLOR, CHROMA_THRESHOLD } from '../config';
-import { loadImage, applyChromaKey } from '../utils/chromaKey';
+import { loadImage } from '../utils/chromaKey';
 import { getFramePath } from '../themes/themeConfig';
 
 /**
@@ -36,9 +35,14 @@ export function useTheme(themeId, layoutFolder, total) {
           getFramePath(themeId, layoutFolder, i),
         );
         const imgs     = await Promise.all(paths.map((p) => loadImage(p)));
-        const canvases = imgs.map((img) =>
-          applyChromaKey(img, CHROMA_COLOR, CHROMA_THRESHOLD),
-        );
+        // PNG의 알파 채널을 그대로 사용 (크로마키 불필요)
+        const canvases = imgs.map((img) => {
+          const c = document.createElement('canvas');
+          c.width  = img.naturalWidth;
+          c.height = img.naturalHeight;
+          c.getContext('2d').drawImage(img, 0, 0);
+          return c;
+        });
         if (!cancelled) {
           setFrameCanvases(canvases);
           setLoading(false);

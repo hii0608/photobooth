@@ -4,7 +4,7 @@
 
 export const CHROMA_COLOR     = { r: 0, g: 197, b: 0 };
 export const CHROMA_THRESHOLD = 55;
-export const COUNTDOWN_FROM   = 0; // TEST: 카운트다운 없음 (원래: 3)
+export const COUNTDOWN_FROM   = 3; // 원래: 3
 
 // ============================================================
 //  LAYOUTS

@@ -47,7 +47,12 @@ export async function mergeVideoClips(blobs, width, height, onProgress) {
       let rafId;
       const drawFrame = () => {
         if (!vid.ended && !vid.paused) {
+          ctx.save();
+          // 좌우 반전 적용
+          ctx.translate(width, 0);
+          ctx.scale(-1, 1);
           ctx.drawImage(vid, 0, 0, width, height);
+          ctx.restore();
           rafId = requestAnimationFrame(drawFrame);
         }
       };

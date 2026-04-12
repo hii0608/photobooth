@@ -3,12 +3,29 @@ import { COUNTDOWN_FROM } from '../config';
 import { drawMirroredVideo } from '../utils/chromaKey';
 import { useTheme } from '../hooks/useTheme';
 import { useVideoRecorder } from '../hooks/useVideoRecorder';
+import { ParticleEffect } from '../utils/particleSystem';
 import FilterBar from './FilterBar';
 import styles from './ShootingScreen.module.css';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const RECORD_AFTER_CAPTURE_MS = 100; // TEST: 딜레이 최소화 (원래: 2_200)
+const RECORD_AFTER_CAPTURE_MS = 1500; // 원래: 2_200 -> 1_500
+
+const FLASH_OPTIONS = [
+  { id: 'none',   label: 'OFF', color: 'transparent' },
+  { id: 'white',  label: '흰색', color: '#ffffff' },
+  { id: 'yellow', label: '노란색', color: '#fff9e6' },
+  { id: 'green',  label: '초록색', color: '#e6ffeb' },
+];
+
+const EFFECT_OPTIONS = [
+  { id: 'none',     label: '효과 없음' },
+  { id: 'goldfish', label: '금붕어' },
+  { id: 'cherry',   label: '벚꽃' },
+  { id: 'snow',     label: '눈' },
+  { id: 'leaf',     label: '낙엽' },
+  { id: 'bubble',    label: '버블' },
+];
 
 /**
  * 슬롯당 2번 촬영. 각 촬영마다 ~5초 클립 녹화.
@@ -39,13 +56,17 @@ export default function ShootingScreen({
   const containerRef     = useRef(null);
   const rafRef           = useRef(null);
   const shootingRef      = useRef(false);
+  const particleSystem   = useRef(new ParticleEffect(25, 'none'));
 
-  const totalShots = layout.total; // TEST: 슬롯당 1컷 (원래: layout.total * 2)
+  const totalShots = layout.total * 2; // 원래: layout.total * 2
 
   const [currentShot, setCurrentShot] = useState(0);
   const [countdown, setCountdown]     = useState(null);
   const [thumbs, setThumbs]           = useState([]);
   const [flash, setFlash]             = useState(false);
+  const [flashColorIdx, setFlashColorIdx] = useState(0); // 0: none, 1: white, 2: yellow, 3: green
+  const [effectIdx, setEffectIdx]         = useState(0);
+  const [isAuto, setIsAuto]               = useState(true); 
   const [btnDisabled, setBtnDisabled] = useState(false);
   const [showFilter, setShowFilter]   = useState(false);
 
@@ -55,6 +76,9 @@ export default function ShootingScreen({
 
   const slotOf = (s) => Math.floor(s / 2);
   const takeOf = (s) => s % 2;
+
+  const currentFlash = FLASH_OPTIONS[flashColorIdx];
+  const currentEffect = EFFECT_OPTIONS[effectIdx];
 
   // ── 컨테이너 비율 조정 ────────────────────────────────────
   const fitContainer = useCallback(() => {
@@ -73,6 +97,9 @@ export default function ShootingScreen({
     else                  { w = maxW; h = w / ar; }
     containerRef.current.style.width  = `${Math.floor(w)}px`;
     containerRef.current.style.height = `${Math.floor(h)}px`;
+
+    // 파티클 시스템 초기화/업데이트
+    particleSystem.current.init(Math.floor(w), Math.floor(h));
   }, [frameCanvases, layout.photoRatio]);
 
   // ── 렌더 루프 ─────────────────────────────────────────────
@@ -82,14 +109,28 @@ export default function ShootingScreen({
     const canvas  = overlayCanvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) { rafRef.current = requestAnimationFrame(renderLoop); return; }
+    
     const dw = container.clientWidth;
     const dh = container.clientHeight;
-    if (canvas.width !== dw || canvas.height !== dh) { canvas.width = dw; canvas.height = dh; }
+    if (canvas.width !== dw || canvas.height !== dh) { 
+      canvas.width = dw; 
+      canvas.height = dh; 
+      particleSystem.current.init(dw, dh);
+    }
+    
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, dw, dh);
+    
+    // 파티클 업데이트 및 그리기
+    if (currentEffect.id !== 'none') {
+      particleSystem.current.update();
+      particleSystem.current.draw(ctx);
+    }
+
     if (frame) ctx.drawImage(frame, 0, 0, dw, dh);
+    
     rafRef.current = requestAnimationFrame(renderLoop);
-  }, [frameCanvases]);
+  }, [frameCanvases, currentEffect]);
 
   useEffect(() => {
     if (framesLoading) return;
@@ -98,6 +139,10 @@ export default function ShootingScreen({
     window.addEventListener('resize', fitContainer);
     return () => { cancelAnimationFrame(rafRef.current); window.removeEventListener('resize', fitContainer); };
   }, [framesLoading, fitContainer, renderLoop]);
+
+  useEffect(() => {
+    particleSystem.current.setType(currentEffect.id);
+  }, [currentEffect]);
 
   // ── 캡처 ─────────────────────────────────────────────────
   const capturePhoto = useCallback(() => {
@@ -111,33 +156,50 @@ export default function ShootingScreen({
       w = frame.width;
       h = frame.height;
     } else {
-      // 프레임 없을 때: layout.photoRatio 기준으로 캔버스 크기 결정
-      // 가로형(ratio≥1)이면 landscape, 세로형이면 portrait 크기
       const ratio = layout.photoRatio ?? 3 / 4;
       const vw    = video.videoWidth  || 1280;
       const vh    = video.videoHeight || 960;
       if (ratio >= 1) {
-        // 가로형: 더 긴 쪽을 가로로
         const base = Math.max(vw, vh);
-        w = base;
-        h = Math.round(base / ratio);
+        w = base; h = Math.round(base / ratio);
       } else {
-        // 세로형: 더 긴 쪽을 세로로
         const base = Math.max(vw, vh);
-        h = base;
-        w = Math.round(base * ratio);
+        h = base; w = Math.round(base * ratio);
       }
     }
 
     const c   = document.createElement('canvas');
     c.width   = w; c.height = h;
     const ctx = c.getContext('2d');
+    
     if (filterCss) ctx.filter = filterCss;
     drawMirroredVideo(ctx, video, w, h);
     ctx.filter = 'none';
+
+    // 캡처 시 파티클도 함께 그림
+    if (currentEffect.id !== 'none') {
+      // 캡처용 캔버스 크기에 맞춰 파티클을 다시 그리거나 비율 조정 필요
+      // 여기서는 현재 파티클 시스템의 상태를 그대로 캡처 캔버스에 투영
+      const tempParticleSystem = new ParticleEffect(particleSystem.current.count, currentEffect.id);
+      tempParticleSystem.init(w, h);
+      // 현재 메인 캔버스의 파티클 위치 비례해서 복사 (단순화를 위해 현재 상태 복사)
+      particleSystem.current.particles.forEach((p, i) => {
+        const tp = tempParticleSystem.particles[i];
+        if (tp) {
+          tp.x = (p.x / particleSystem.current.width) * w;
+          tp.y = (p.y / particleSystem.current.height) * h;
+          tp.size = (p.size / particleSystem.current.width) * w;
+          tp.angle = p.angle;
+          tp.opacity = p.opacity;
+          tp.speedX = p.speedX; // 방향 유지를 위해
+          tp.draw(ctx);
+        }
+      });
+    }
+
     if (frame) ctx.drawImage(frame, 0, 0, w, h);
     return c;
-  }, [frameCanvases, videoRef, filterCss, layout.photoRatio]);
+  }, [frameCanvases, videoRef, filterCss, layout.photoRatio, currentEffect]);
 
   // ── 셔터 ─────────────────────────────────────────────────
   const handleShutter = useCallback(async () => {
@@ -153,8 +215,20 @@ export default function ShootingScreen({
     }
     setCountdown(null);
 
-    setFlash(true); await sleep(60); setFlash(false);
+    // 플래시 효과 (총 0.5초: 0.3초 노출 후 캡처, 0.2초 잔상)
+    if (currentFlash.id !== 'none') {
+      setFlash(true);
+      await sleep(300); // 얼굴에 빛이 비칠 시간
+    } else {
+      setFlash(true); await sleep(60); setFlash(false); // 기본 셔터 느낌
+    }
+
     const photo = capturePhoto();
+
+    if (currentFlash.id !== 'none') {
+      await sleep(200); // 캡처 후 잠깐 더 보여주기
+      setFlash(false);
+    }
 
     await sleep(RECORD_AFTER_CAPTURE_MS);
     const videoBlob = await stopClip();
@@ -185,9 +259,27 @@ export default function ShootingScreen({
     } else {
       fitContainer();
       setBtnDisabled(false);
+
+      if (isAuto) {
+        setTimeout(() => {
+          handleShutter();
+        }, 600);
+      }
     }
     shootingRef.current = false;
-  }, [capturePhoto, fitContainer, onComplete, startClip, stopClip, totalShots]);
+  }, [capturePhoto, fitContainer, onComplete, startClip, stopClip, totalShots, currentFlash, isAuto]);
+
+  const toggleFlash = useCallback(() => {
+    setFlashColorIdx((prev) => (prev + 1) % FLASH_OPTIONS.length);
+  }, []);
+
+  const toggleEffect = useCallback(() => {
+    setEffectIdx((prev) => (prev + 1) % EFFECT_OPTIONS.length);
+  }, []);
+
+  const toggleAuto = useCallback(() => {
+    setIsAuto((v) => !v);
+  }, []);
 
   if (framesLoading) {
     return <div className={styles.wrapper}><p className={styles.loadingText}>테마 로딩 중…</p></div>;
@@ -199,7 +291,10 @@ export default function ShootingScreen({
 
   return (
     <div className={styles.wrapper}>
-      <div className={`${styles.flash} ${flash ? styles.flashOn : ''}`} />
+      <div
+        className={`${styles.flash} ${flash ? styles.flashOn : ''}`}
+        style={{ backgroundColor: currentFlash.color }}
+      />
 
       <div className={styles.topBar}>
         <span className={styles.counter}>
@@ -246,10 +341,41 @@ export default function ShootingScreen({
           onClick={handleShutter}
           disabled={btnDisabled}
           aria-label="촬영"
-        />
+        >
+          {isAuto && <span className={styles.autoShutterBadge}>AUTO</span>}
+        </button>
 
-        {/* 자리 맞춤 (좌우 균형) */}
-        <div style={{ width: 52 }} />
+        <div className={styles.sideButtons}>
+          {/* 자동/수동 토글 */}
+          <button
+            className={`${styles.autoToggle} ${isAuto ? styles.autoToggleActive : ''}`}
+            onClick={toggleAuto}
+            disabled={btnDisabled}
+            aria-label="자동촬영"
+          >
+            {isAuto ? '자동' : '수동'}
+          </button>
+
+          {/* 플래시 토글 버튼 */}
+          <button
+            className={`${styles.flashToggle} ${currentFlash.id !== 'none' ? styles.flashToggleActive : ''}`}
+            onClick={toggleFlash}
+            disabled={btnDisabled}
+            aria-label="플래시"
+          >
+            {currentFlash.label}
+          </button>
+
+          {/* 효과 토글 버튼 */}
+          <button
+            className={`${styles.effectToggle} ${currentEffect.id !== 'none' ? styles.effectToggleActive : ''}`}
+            onClick={toggleEffect}
+            disabled={btnDisabled}
+            aria-label="효과"
+          >
+            {currentEffect.label}
+          </button>
+        </div>
       </div>
 
       {/* 필터 패널 */}
