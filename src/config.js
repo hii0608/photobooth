@@ -1,38 +1,95 @@
 // ============================================================
 //  PHOTOBOOTH CONFIGURATION
-//  프레임 이미지 경로 및 크로마키 설정을 여기서 관리합니다.
-//  - src 값을 Base64 data-URI 문자열로 교체하면 외부 파일 없이 동작합니다.
-//  - 운영자가 배포 시 이 파일만 수정하면 됩니다.
 // ============================================================
 
-export const FRAMES = [
-  { id: 1, src: '/frames/그린스크린_1.png', label: 'Shot 1' },
-  { id: 2, src: '/frames/그린스크린_2.png', label: 'Shot 2' },
-  { id: 3, src: '/frames/그린스크린_3.png', label: 'Shot 3' },
-  { id: 4, src: '/frames/그린스크린_4.png', label: 'Shot 4' },
-];
-
-// 크로마키 타겟 색상 (#00C500)
-export const CHROMA_COLOR = { r: 0, g: 197, b: 0 };
-
-// 색상 거리 허용 범위 (0 ~ 441). 값이 클수록 넓은 범위의 초록을 제거
+export const CHROMA_COLOR     = { r: 0, g: 197, b: 0 };
 export const CHROMA_THRESHOLD = 55;
-
-// 카운트다운 시작 숫자
-export const COUNTDOWN_FROM = 3;
+export const COUNTDOWN_FROM   = 3;
 
 // ============================================================
-//  LAYOUTS — 운영자가 원하는 레이아웃만 남기거나 추가할 수 있습니다.
+//  LAYOUTS
 //
-//  cols  : 결과 이미지의 가로 칸 수
-//  rows  : 결과 이미지의 세로 칸 수
-//  total : 촬영 횟수 (= cols × rows, 또는 커스텀 값)
-//
-//  total ≤ FRAMES 배열 길이여야 합니다.
+//  label       : 화면에 표시되는 이름 — 한국 포토부스 표준 행×열 표기
+//                예) "1 × 4" = 1행 4열 = 가로로 4칸 한 줄 (landscape)
+//                    "4 × 1" = 4행 1열 = 세로로 4칸 한 줄 (portrait)
+//  cols / rows : 실제 그리드 구조 (내부 렌더링용)
+//  folder      : public/themes/{테마}/{folder}/ 경로
+//  orientation : 'portrait' | 'landscape'
+//  photoRatio  : 개별 슬롯 비율 (width/height)
 // ============================================================
 export const LAYOUTS = [
-  { id: '2x2', label: '2 × 2', cols: 2, rows: 2, total: 4 },
-  { id: '1x4', label: '1 × 4', cols: 1, rows: 4, total: 4 },
-  { id: '4x1', label: '4 × 1', cols: 4, rows: 1, total: 4 },
-  { id: '3x1', label: '3 × 1', cols: 3, rows: 1, total: 3 },
+
+  // ── 세로형 (portrait) — 가로개수 × 세로개수 표기 ───────────
+  {
+    id         : '1x4',
+    label      : '1 × 4',      // 가로 1칸 × 세로 4칸
+    cols       : 1,
+    rows       : 4,
+    total      : 4,
+    folder     : '1_4',
+    orientation: 'portrait',
+    photoRatio : 3 / 4,
+  },
+  {
+    id         : '2x3',
+    label      : '2 × 3',      // 가로 2칸 × 세로 3칸
+    cols       : 2,
+    rows       : 3,
+    total      : 6,
+    folder     : '2_3',
+    orientation: 'portrait',
+    photoRatio : 3 / 4,
+  },
+  {
+    id         : '2x2_v',
+    label      : '2 × 2 세로',
+    cols       : 2,
+    rows       : 2,
+    total      : 4,
+    folder     : '2_2_v',
+    orientation: 'portrait',
+    photoRatio : 3 / 4,
+  },
+  {
+    id         : '1x3',
+    label      : '1 × 3',      // 가로 1칸 × 세로 3칸
+    cols       : 1,
+    rows       : 3,
+    total      : 3,
+    folder     : '1_3',
+    orientation: 'portrait',
+    photoRatio : 3 / 4,
+  },
+
+  // ── 가로형 (landscape) — 가로개수 × 세로개수 표기 ──────────
+  {
+    id         : '4x1',
+    label      : '4 × 1',      // 가로 4칸 × 세로 1칸
+    cols       : 4,
+    rows       : 1,
+    total      : 4,
+    folder     : '4_1',
+    orientation: 'landscape',
+    photoRatio : 4 / 3,
+  },
+  {
+    id         : '3x1',
+    label      : '3 × 1',      // 가로 3칸 × 세로 1칸
+    cols       : 3,
+    rows       : 1,
+    total      : 3,
+    folder     : '3_1',
+    orientation: 'landscape',
+    photoRatio : 4 / 3,
+  },
+  {
+    id         : '2x2_h',
+    label      : '2 × 2 가로',
+    cols       : 2,
+    rows       : 2,
+    total      : 4,
+    folder     : '2_2_h',
+    orientation: 'landscape',
+    photoRatio : 4 / 3,
+  },
 ];

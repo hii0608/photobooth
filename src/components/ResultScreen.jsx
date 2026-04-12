@@ -1,23 +1,52 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
+import { mergeVideoClips } from '../utils/videoMerge';
+import StampLayer from './StampLayer';
 import styles from './ResultScreen.module.css';
 
-export default function ResultScreen({ capturedPhotos, layout, onRetake }) {
-  const [flipped, setFlipped] = useState(false);
+export default function ResultScreen({ capturedPhotos, selectedVideos, layout, onRetake }) {
+  const [flipped, setFlipped]               = useState(false);
+  const [mergingVideo, setMergingVideo]     = useState(false);
+  const [mergeProgress, setMergeProgress]   = useState(0);
 
-  // canvas → data URL (표시용, 저장 시에는 원본 canvas 사용)
+  const gridWrapperRef = useRef(null);
+  const stampLayerRef  = useRef(null);
+
   const photoUrls = useMemo(
     () => capturedPhotos.map((c) => c.toDataURL('image/jpeg', 0.92)),
     [capturedPhotos],
   );
 
+  // ── 스탬프를 canvas에 합성하는 헬퍼 ─────────────────────
+  const drawStampsOnCanvas = (ctx, canvasW, canvasH, displayW, displayH) => {
+    const placed = stampLayerRef.current?.getPlaced() ?? [];
+    if (!placed.length) return;
+
+    const scaleX = canvasW / displayW;
+    const scaleY = canvasH / displayH;
+
+    placed.forEach((stamp) => {
+      const x    = stamp.x * scaleX;
+      const y    = stamp.y * scaleY;
+      const size = stamp.size * Math.min(scaleX, scaleY);
+
+      if (stamp.type === 'emoji') {
+        ctx.font         = `${size * 0.85}px serif`;
+        ctx.textBaseline = 'top';
+        ctx.fillText(stamp.value, x, y);
+      }
+      // 이미지 스탬프는 추후 확장
+    });
+  };
+
+  // ── 사진 저장 ─────────────────────────────────────────────
   const handleSave = () => {
     if (!capturedPhotos.length) return;
     const pw  = capturedPhotos[0].width;
     const ph  = capturedPhotos[0].height;
     const gap = Math.round(Math.min(pw, ph) * 0.015);
     const { cols, rows } = layout;
-    const W   = pw * cols + gap * (cols - 1);
-    const H   = ph * rows + gap * (rows - 1);
+    const W = pw * cols + gap * (cols - 1);
+    const H = ph * rows + gap * (rows - 1);
 
     const composite = document.createElement('canvas');
     composite.width  = W;
@@ -31,7 +60,6 @@ export default function ResultScreen({ capturedPhotos, layout, onRetake }) {
       const row = Math.floor(i / cols);
       const x   = col * (pw + gap);
       const y   = row * (ph + gap);
-
       if (flipped) {
         ctx.save();
         ctx.translate(x + pw, y);
@@ -43,18 +71,61 @@ export default function ResultScreen({ capturedPhotos, layout, onRetake }) {
       }
     });
 
+    // 스탬프 합성
+    const wrapper = gridWrapperRef.current;
+    if (wrapper) {
+      const rect = wrapper.getBoundingClientRect();
+      drawStampsOnCanvas(ctx, W, H, rect.width, rect.height);
+    }
+
     const a    = document.createElement('a');
     a.download = `photobooth_${layout.id}_${Date.now()}.png`;
     a.href     = composite.toDataURL('image/png');
     a.click();
   };
 
+  // ── 영상 저장 ─────────────────────────────────────────────
+  const handleVideoSave = async () => {
+    if (mergingVideo) return;
+    const validClips = selectedVideos?.filter(Boolean);
+    if (!validClips?.length) { alert('저장할 영상 클립이 없습니다.'); return; }
+
+    setMergingVideo(true);
+    setMergeProgress(0);
+
+    try {
+      const w = capturedPhotos[0]?.width  || 1280;
+      const h = capturedPhotos[0]?.height || 960;
+      const merged = await mergeVideoClips(
+        validClips, w, h,
+        (p) => setMergeProgress(Math.round(p * 100)),
+      );
+      if (merged) {
+        const a    = document.createElement('a');
+        a.download = `photobooth_video_${Date.now()}.webm`;
+        a.href     = URL.createObjectURL(merged);
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+      } else {
+        alert('영상 합치기에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('영상 저장 오류:', err);
+      alert('영상 저장 중 오류가 발생했습니다.');
+    } finally {
+      setMergingVideo(false);
+      setMergeProgress(0);
+    }
+  };
+
+  const hasVideos = selectedVideos?.some(Boolean);
+
   return (
     <div className={styles.wrapper}>
       <span className={styles.label}>YOUR PHOTOS — {layout.label}</span>
 
-      {/* 사진 격자: flex:1 로 남은 공간 차지 */}
-      <div className={styles.gridWrapper}>
+      {/* 사진 + 스탬프 레이어 */}
+      <div ref={gridWrapperRef} className={styles.gridWrapper}>
         <div
           className={styles.grid}
           style={{
@@ -71,9 +142,12 @@ export default function ResultScreen({ capturedPhotos, layout, onRetake }) {
             />
           ))}
         </div>
+
+        {/* 스탬프 오버레이 */}
+        <StampLayer ref={stampLayerRef} containerRef={gridWrapperRef} />
       </div>
 
-      {/* 반전 토글 */}
+      {/* 좌우 반전 토글 */}
       <label className={styles.flipToggle}>
         <input
           type="checkbox"
@@ -89,8 +163,21 @@ export default function ResultScreen({ capturedPhotos, layout, onRetake }) {
 
       {/* 액션 버튼 */}
       <div className={styles.actions}>
-        <button className={styles.btnSave}   onClick={handleSave}>Save</button>
-        <button className={styles.btnRetake} onClick={onRetake}>Retake</button>
+        <button className={styles.btnSave} onClick={handleSave}>
+          사진 저장
+        </button>
+        {hasVideos && (
+          <button
+            className={styles.btnVideo}
+            onClick={handleVideoSave}
+            disabled={mergingVideo}
+          >
+            {mergingVideo ? `합치는 중… ${mergeProgress}%` : '영상 저장'}
+          </button>
+        )}
+        <button className={styles.btnRetake} onClick={onRetake}>
+          Retake
+        </button>
       </div>
     </div>
   );

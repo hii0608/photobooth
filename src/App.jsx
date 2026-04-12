@@ -1,62 +1,84 @@
 import { useState, useCallback } from 'react';
-import { useFrames }          from './hooks/useFrames';
 import { useCamera }          from './hooks/useCamera';
-import LoadingScreen          from './components/LoadingScreen';
+import { useFilter }          from './hooks/useFilter';
 import StartScreen            from './components/StartScreen';
 import LayoutSelectScreen     from './components/LayoutSelectScreen';
+import ThemeSelectScreen      from './components/ThemeSelectScreen';
 import ShootingScreen         from './components/ShootingScreen';
+import ArrangeScreen          from './components/ArrangeScreen';
 import ResultScreen           from './components/ResultScreen';
 
-// ── Screen identifiers ────────────────────────────────────
 const SCREEN = {
   START   : 'start',
   LAYOUT  : 'layout',
+  THEME   : 'theme',
   SHOOTING: 'shooting',
+  ARRANGE : 'arrange',
   RESULT  : 'result',
 };
 
 export default function App() {
-  const { frameCanvases, loading, error } = useFrames();
   const { videoRef, startCamera, stopCamera } = useCamera();
+  const { custom, presetId, filterCss, setPreset, setCustom } = useFilter();
 
-  const [screen, setScreen]         = useState(SCREEN.START);
-  const [layout, setLayout]         = useState(null);   // 선택된 layout 객체
-  const [capturedPhotos, setCaptured] = useState([]);
+  const [screen, setScreen]                 = useState(SCREEN.START);
+  const [layout, setLayout]                 = useState(null);
+  const [theme, setTheme]                   = useState(null);
+  const [capturedBySlot, setCapturedBySlot] = useState([]);
+  const [videosByShot, setVideosByShot]     = useState([]);
+  const [capturedPhotos, setCaptured]       = useState([]);
+  const [selectedVideos, setSelectedVideos] = useState([]);
 
-  // START → LAYOUT SELECT
-  const handleStart = useCallback(() => {
-    setScreen(SCREEN.LAYOUT);
+  const handleStart = useCallback(() => setScreen(SCREEN.LAYOUT), []);
+
+  const handleLayoutSelect = useCallback((selectedLayout) => {
+    setLayout(selectedLayout);
+    setTheme(null);
+    setScreen(SCREEN.THEME);
   }, []);
 
-  // LAYOUT SELECT → SHOOTING
-  const handleLayoutSelect = useCallback(async (selectedLayout) => {
-    setLayout(selectedLayout);
+  const handleThemeSelect = useCallback(async (selectedTheme) => {
+    setTheme(selectedTheme);
+    setCapturedBySlot([]);
+    setVideosByShot([]);
     setCaptured([]);
+    setSelectedVideos([]);
     setScreen(SCREEN.SHOOTING);
     try {
       await startCamera();
     } catch (err) {
       console.error('카메라 오류:', err);
       alert('카메라를 사용할 수 없습니다: ' + err.message);
-      setScreen(SCREEN.LAYOUT);
+      setScreen(SCREEN.THEME);
     }
   }, [startCamera]);
 
-  // SHOOTING → RESULT
-  const handleComplete = useCallback((photos) => {
+  const handleShootingComplete = useCallback(({ bySlot, videos }) => {
     stopCamera();
-    setCaptured(photos);
-    setScreen(SCREEN.RESULT);
+    setCapturedBySlot(bySlot);
+    setVideosByShot(videos);
+    setScreen(SCREEN.ARRANGE);
   }, [stopCamera]);
 
-  // RESULT → LAYOUT SELECT (Retake: 레이아웃부터 다시 선택)
-  const handleRetake = useCallback(() => {
-    setCaptured([]);
+  const handleArrangeConfirm = useCallback(({ photos, videos }) => {
+    setCaptured(photos);
+    setSelectedVideos(videos);
+    setScreen(SCREEN.RESULT);
+  }, []);
+
+  const handleRetakeFromArrange = useCallback(() => {
+    setCapturedBySlot([]);
+    setVideosByShot([]);
     stopCamera();
     setScreen(SCREEN.LAYOUT);
   }, [stopCamera]);
 
-  if (loading || error) return <LoadingScreen error={error} />;
+  const handleRetake = useCallback(() => {
+    setCaptured([]);
+    setSelectedVideos([]);
+    stopCamera();
+    setScreen(SCREEN.LAYOUT);
+  }, [stopCamera]);
 
   return (
     <>
@@ -66,17 +88,39 @@ export default function App() {
       {screen === SCREEN.LAYOUT && (
         <LayoutSelectScreen onSelect={handleLayoutSelect} />
       )}
-      {screen === SCREEN.SHOOTING && layout && (
-        <ShootingScreen
-          frameCanvases={frameCanvases}
+      {screen === SCREEN.THEME && layout && (
+        <ThemeSelectScreen
           layout={layout}
+          onSelect={handleThemeSelect}
+          onBack={() => setScreen(SCREEN.LAYOUT)}
+        />
+      )}
+      {screen === SCREEN.SHOOTING && layout && theme && (
+        <ShootingScreen
+          layout={layout}
+          theme={theme}
+          filterCss={filterCss}
+          presetId={presetId}
+          custom={custom}
+          setPreset={setPreset}
+          setCustom={setCustom}
           videoRef={videoRef}
-          onComplete={handleComplete}
+          onComplete={handleShootingComplete}
+        />
+      )}
+      {screen === SCREEN.ARRANGE && layout && capturedBySlot.length > 0 && (
+        <ArrangeScreen
+          capturedBySlot={capturedBySlot}
+          videos={videosByShot}
+          layout={layout}
+          onConfirm={handleArrangeConfirm}
+          onRetake={handleRetakeFromArrange}
         />
       )}
       {screen === SCREEN.RESULT && layout && (
         <ResultScreen
           capturedPhotos={capturedPhotos}
+          selectedVideos={selectedVideos}
           layout={layout}
           onRetake={handleRetake}
         />

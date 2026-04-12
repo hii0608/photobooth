@@ -1,0 +1,98 @@
+.panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10, 10, 10, 0.96);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 14px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.closeBtn:hover { color: #fff; }
+
+/* 프리셋 버튼 가로 스크롤 */
+.presets {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.presets::-webkit-scrollbar { display: none; }
+
+.presetBtn {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  background: #1e1e1e;
+  border: 1.5px solid transparent;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.presetBtn:hover  { border-color: rgba(255,255,255,0.3); color: #fff; }
+.presetActive     { border-color: rgba(255,255,255,0.8) !important; color: #fff !important; background: #2a2a2a; }
+
+/* 뷰티 프리셋 — 핑크 강조 */
+.beautyBtn        { border-color: rgba(255, 180, 200, 0.2); color: rgba(255, 180, 200, 0.7); }
+.beautyBtn:hover  { border-color: rgba(255, 180, 200, 0.5); color: rgba(255, 180, 200, 1); }
+.beautyBtn.presetActive { border-color: rgba(255, 180, 200, 0.9) !important; color: rgba(255, 210, 220, 1) !important; }
+
+/* 슬라이더 영역 */
+.sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sliderRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sliderLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.45);
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.slider {
+  flex: 1;
+  height: 3px;
+  accent-color: #fff;
+  cursor: pointer;
+}
+
+.sliderValue {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}

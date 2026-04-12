@@ -4,91 +4,126 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 24px 20px;
+  gap: 10px;
+  padding: 20px 16px 24px;
   background: #0a0a0a;
+  overflow-y: auto;
 }
 
 .title {
-  font-size: clamp(1.3rem, 4vw, 2rem);
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
   font-weight: 900;
   letter-spacing: 0.06em;
   color: #fff;
+  flex-shrink: 0;
 }
 
 .sub {
-  font-size: 0.82rem;
-  opacity: 0.45;
+  font-size: 0.8rem;
+  opacity: 0.4;
   letter-spacing: 0.08em;
-  margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
-/* 카드 2열 그리드 */
+/* 세로형 / 가로형 섹션 */
+.section {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionLabel {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  padding-left: 2px;
+}
+
+/* 카드 그리드 */
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: clamp(10px, 2vw, 16px);
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: clamp(8px, 2vw, 12px);
   width: 100%;
-  max-width: 420px;
 }
 
-/* 모든 카드 동일 크기 */
+/* 카드 */
 .card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 18px 12px 14px;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 12px 8px 10px;
   background: #1a1a1a;
   border: 2px solid transparent;
-  border-radius: 16px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
   outline: none;
-  /* 카드 높이 고정 — 내용이 달라도 동일하게 */
-  min-height: 150px;
 }
-.card:hover       { border-color: rgba(255,255,255,0.35); background: #222; }
-.card:active      { transform: scale(0.96); }
+.card:hover        { border-color: rgba(255,255,255,0.3); background: #222; }
+.card:active       { transform: scale(0.96); }
 .card:focus-visible { border-color: rgba(255,255,255,0.6); }
 
-/* 미리보기 컨테이너: 모든 카드에서 동일한 고정 크기 박스 */
-.previewWrapper {
-  width: 72px;
-  height: 72px;
+/* ─── 미리보기 컨테이너: orientation별 비율 ─── */
+.previewFrame {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* 공통 최대 크기 */
+  max-width: 72px;
+  max-height: 72px;
+  width: 100%;
 }
 
-/* 미리보기 격자: previewWrapper를 꽉 채움 */
+/* 세로형: 3:4 비율의 portrait 박스 */
+.previewPortrait {
+  aspect-ratio: 3 / 4;
+  width: 42px;
+  height: 56px;
+}
+
+/* 가로형: 4:3 비율의 landscape 박스 */
+.previewLandscape {
+  aspect-ratio: 4 / 3;
+  width: 56px;
+  height: 42px;
+}
+
+/* 미리보기 격자: 프레임 박스를 꽉 채움 */
 .preview {
   display: grid;
-  gap: 3px;
+  gap: 2px;
   width: 100%;
   height: 100%;
-  /* grid-template-columns / rows는 인라인으로 지정 */
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-/* 개별 셀: min-size 0으로 격자가 overflow 없이 채워지도록 */
+/* 개별 셀 */
 .cell {
-  background: rgba(255,255,255,0.22);
-  border-radius: 2px;
+  background: rgba(255,255,255,0.18);
   min-width: 0;
   min-height: 0;
 }
 
 .cardLabel {
-  font-size: 0.88rem;
+  font-size: 0.78rem;
   font-weight: 800;
   color: #fff;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .cardSub {
-  font-size: 0.7rem;
-  opacity: 0.4;
-  letter-spacing: 0.1em;
+  font-size: 0.65rem;
+  opacity: 0.38;
+  letter-spacing: 0.08em;
 }
