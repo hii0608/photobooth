@@ -1,74 +1,70 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { COUNTDOWN_FROM } from '../config';
 import { drawMirroredVideo } from '../utils/chromaKey';
 import { useTheme } from '../hooks/useTheme';
 import { useVideoRecorder } from '../hooks/useVideoRecorder';
+import { useParticleAssets } from '../hooks/useParticleAssets';
 import { ParticleEffect } from '../utils/particleSystem';
+import { CustomParticleEffect } from '../utils/customParticle';
+import { loadParticleImages } from '../utils/particleDB';
 import FilterBar from './FilterBar';
 import styles from './ShootingScreen.module.css';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const RECORD_AFTER_CAPTURE_MS = 1500; // 원래: 2_200 -> 1_500
+const RECORD_AFTER_CAPTURE_MS = 2200;
 
 const FLASH_OPTIONS = [
-  { id: 'none',   label: 'OFF', color: 'transparent' },
-  { id: 'white',  label: '흰색', color: '#ffffff' },
+  { id: 'none',   label: 'OFF',   color: 'transparent' },
+  { id: 'white',  label: '흰색',  color: '#ffffff' },
   { id: 'yellow', label: '노란색', color: '#fff9e6' },
   { id: 'green',  label: '초록색', color: '#e6ffeb' },
 ];
 
-const EFFECT_OPTIONS = [
-  { id: 'none',     label: '효과 없음' },
+const BUILTIN_EFFECTS = [
+  { id: 'none',     label: '없음' },
   { id: 'goldfish', label: '금붕어' },
   { id: 'cherry',   label: '벚꽃' },
   { id: 'snow',     label: '눈' },
   { id: 'leaf',     label: '낙엽' },
-  { id: 'bubble',    label: '버블' },
+  { id: 'bubble',   label: '버블' },
 ];
 
-/**
- * 슬롯당 2번 촬영. 각 촬영마다 ~5초 클립 녹화.
- *
- * onComplete({ bySlot, videos }) 호출:
- *   bySlot : Array<[canvas, canvas]>
- *   videos : Array<Blob|null>  — videos[slot * 2 + take]
- */
+const BUILTIN_IDS = new Set(BUILTIN_EFFECTS.map((e) => e.id));
+
 export default function ShootingScreen({
-  layout,
-  theme,
-  filterCss,
-  presetId,
-  custom,
-  setPreset,
-  setCustom,
-  onComplete,
-  videoRef,
+  layout, theme, filterCss, presetId, custom, setPreset, setCustom, onComplete, videoRef,
 }) {
-  const { frameCanvases, loading: framesLoading } = useTheme(
-    theme.id,
-    layout.folder,
-    layout.total,
-  );
-  const { startClip, stopClip } = useVideoRecorder(videoRef);
+  const { frameCanvases, loading: framesLoading } = useTheme(theme.id, layout.folder, layout.total);
+  const { startClip, stopClip }  = useVideoRecorder(videoRef);
+  const { visibleAssets }        = useParticleAssets();
 
   const overlayCanvasRef = useRef(null);
   const containerRef     = useRef(null);
   const rafRef           = useRef(null);
   const shootingRef      = useRef(false);
-  const particleSystem   = useRef(new ParticleEffect(25, 'none'));
 
-  const totalShots = layout.total * 2; // 원래: layout.total * 2
+  // 파티클 시스템 — RAF 루프와 함께 계속 살아있음
+  const builtinParticles = useRef(new ParticleEffect(25, 'none'));
+  const customParticles  = useRef(null);
+  const customImgCache   = useRef(new Map()); // assetId → HTMLImageElement[]
 
-  const [currentShot, setCurrentShot] = useState(0);
-  const [countdown, setCountdown]     = useState(null);
-  const [thumbs, setThumbs]           = useState([]);
-  const [flash, setFlash]             = useState(false);
-  const [flashColorIdx, setFlashColorIdx] = useState(0); // 0: none, 1: white, 2: yellow, 3: green
-  const [effectIdx, setEffectIdx]         = useState(0);
-  const [isAuto, setIsAuto]               = useState(true); 
-  const [btnDisabled, setBtnDisabled] = useState(false);
-  const [showFilter, setShowFilter]   = useState(false);
+  // RAF 루프가 ref로 최신 값을 읽기 위한 shadow refs
+  const effectIdRef      = useRef('none');
+  const frameCanvasesRef = useRef([]);
+
+  const totalShots = layout.total * 2;
+
+  const [currentShot, setCurrentShot]       = useState(0);
+  const [countdown, setCountdown]           = useState(null);
+  const [thumbs, setThumbs]                 = useState([]);
+  const [flash, setFlash]                   = useState(false);
+  const [flashColorIdx, setFlashColorIdx]   = useState(0);
+  const [effectId, setEffectId]             = useState('none');
+  const [isAuto, setIsAuto]                 = useState(true);
+  const [btnDisabled, setBtnDisabled]       = useState(false);
+  const [showFilter, setShowFilter]         = useState(false);
+  const [showEffects, setShowEffects]       = useState(false);
 
   const currentShotRef = useRef(0);
   const capturedBySlot = useRef(Array.from({ length: layout.total }, () => []));
@@ -78,134 +74,203 @@ export default function ShootingScreen({
   const takeOf = (s) => s % 2;
 
   const currentFlash = FLASH_OPTIONS[flashColorIdx];
-  const currentEffect = EFFECT_OPTIONS[effectIdx];
 
-  // ── 컨테이너 비율 조정 ────────────────────────────────────
+  // ── effectId·frameCanvases를 ref에 동기화 (render loop용) ──
+  useEffect(() => { effectIdRef.current = effectId; }, [effectId]);
+  useEffect(() => { frameCanvasesRef.current = frameCanvases; }, [frameCanvases]);
+
+  // ── 효과 옵션 (내장 + 노출 중인 커스텀) ──────────────────
+  const effectOptions = useMemo(() => [
+    ...BUILTIN_EFFECTS,
+    ...visibleAssets.map((a) => ({ id: `custom:${a.id}`, label: a.name })),
+  ], [visibleAssets]);
+
+  const currentEffect = effectOptions.find((e) => e.id === effectId) ?? effectOptions[0];
+
+  // ── 커스텀 에셋 이미지 사전 로드 ─────────────────────────
+  useEffect(() => {
+    visibleAssets.forEach((asset) => {
+      if (customImgCache.current.has(asset.id)) return;
+      loadParticleImages(asset.imageIds ?? []).then((imgs) => {
+        customImgCache.current.set(asset.id, imgs);
+      });
+    });
+  }, [visibleAssets]);
+
+  // ── 효과 전환 — 파티클 시스템 교체 (loop는 계속 돌아감) ──
+  useEffect(() => {
+    if (effectId.startsWith('custom:')) {
+      const assetId = effectId.replace('custom:', '');
+      const asset   = visibleAssets.find((a) => a.id === assetId);
+      builtinParticles.current.setType('none');
+      if (asset) {
+        const imgs = customImgCache.current.get(assetId) ?? [];
+        const eff  = new CustomParticleEffect(asset, imgs);
+        const c    = containerRef.current;
+        if (c?.clientWidth) eff.init(c.clientWidth, c.clientHeight);
+        customParticles.current = eff;
+      }
+    } else {
+      customParticles.current = null;
+      builtinParticles.current.setType(effectId);
+    }
+  }, [effectId, visibleAssets]);
+
+  // ── 컨테이너 비율 조정 (파티클 init 없음 — loop가 담당) ──
   const fitContainer = useCallback(() => {
     if (!containerRef.current) return;
     const slot  = slotOf(currentShotRef.current);
-    const frame = frameCanvases[slot] ?? frameCanvases[0];
-    // 프레임 이미지가 있으면 그 비율, 없으면 layout.photoRatio (가로/세로 구분)
-    const ar    = frame
-      ? frame.width / frame.height
-      : (layout.photoRatio ?? 3 / 4);
+    const fcs   = frameCanvasesRef.current;
+    const frame = fcs[slot] ?? fcs[0];
+    const ar    = frame ? frame.width / frame.height : (layout.photoRatio ?? 3 / 4);
     const parent = containerRef.current.parentElement;
-    const maxW   = parent.clientWidth;
-    const maxH   = parent.clientHeight;
+    const maxW = parent.clientWidth;
+    const maxH = parent.clientHeight;
     let w, h;
     if (maxW / maxH > ar) { h = maxH; w = h * ar; }
     else                  { w = maxW; h = w / ar; }
     containerRef.current.style.width  = `${Math.floor(w)}px`;
     containerRef.current.style.height = `${Math.floor(h)}px`;
+  }, [layout.photoRatio]);
 
-    // 파티클 시스템 초기화/업데이트
-    particleSystem.current.init(Math.floor(w), Math.floor(h));
-  }, [frameCanvases, layout.photoRatio]);
-
-  // ── 렌더 루프 ─────────────────────────────────────────────
+  // ── 안정적인 RAF 루프 — 의존성 없음, ref로 최신값 읽음 ──
   const renderLoop = useCallback(() => {
+    const eid     = effectIdRef.current;
+    const fcs     = frameCanvasesRef.current;
     const slot    = slotOf(currentShotRef.current);
-    const frame   = frameCanvases[slot];
+    const frame   = fcs[slot];
     const canvas  = overlayCanvasRef.current;
     const container = containerRef.current;
-    if (!canvas || !container) { rafRef.current = requestAnimationFrame(renderLoop); return; }
-    
+
+    if (!canvas || !container) {
+      rafRef.current = requestAnimationFrame(renderLoop);
+      return;
+    }
+
     const dw = container.clientWidth;
     const dh = container.clientHeight;
-    if (canvas.width !== dw || canvas.height !== dh) { 
-      canvas.width = dw; 
-      canvas.height = dh; 
-      particleSystem.current.init(dw, dh);
+
+    // 캔버스 크기 변경 처리
+    if (canvas.width !== dw || canvas.height !== dh) {
+      if (canvas.width > 0 && canvas.height > 0) {
+        // 기존 파티클 위치를 비율에 맞게 스케일링 (초기화 X)
+        const sx = dw / canvas.width;
+        const sy = dh / canvas.height;
+        [builtinParticles.current, customParticles.current]
+          .filter(Boolean)
+          .forEach((sys) => {
+            (sys.particles ?? []).forEach((p) => {
+              p.x *= sx;
+              p.y *= sy;
+              p.canvasWidth  = dw;
+              p.canvasHeight = dh;
+            });
+            sys.width  = dw;
+            sys.height = dh;
+          });
+      } else {
+        // 최초 1회 init
+        builtinParticles.current.init(dw, dh);
+        if (customParticles.current) customParticles.current.init(dw, dh);
+      }
+      canvas.width  = dw;
+      canvas.height = dh;
     }
-    
+
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, dw, dh);
-    
-    // 파티클 업데이트 및 그리기
-    if (currentEffect.id !== 'none') {
-      particleSystem.current.update();
-      particleSystem.current.draw(ctx);
+
+    if (eid !== 'none' && BUILTIN_IDS.has(eid)) {
+      builtinParticles.current.update();
+      builtinParticles.current.draw(ctx);
+    }
+    if (eid.startsWith('custom:') && customParticles.current) {
+      customParticles.current.update();
+      customParticles.current.draw(ctx);
     }
 
     if (frame) ctx.drawImage(frame, 0, 0, dw, dh);
-    
-    rafRef.current = requestAnimationFrame(renderLoop);
-  }, [frameCanvases, currentEffect]);
 
+    rafRef.current = requestAnimationFrame(renderLoop);
+  }, []); // 의존성 없음 — 절대 재시작되지 않음
+
+  // ── 루프 시작 (로딩 완료 후 한 번만) ─────────────────────
   useEffect(() => {
     if (framesLoading) return;
     fitContainer();
     renderLoop();
     window.addEventListener('resize', fitContainer);
-    return () => { cancelAnimationFrame(rafRef.current); window.removeEventListener('resize', fitContainer); };
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener('resize', fitContainer);
+    };
   }, [framesLoading, fitContainer, renderLoop]);
-
-  useEffect(() => {
-    particleSystem.current.setType(currentEffect.id);
-  }, [currentEffect]);
 
   // ── 캡처 ─────────────────────────────────────────────────
   const capturePhoto = useCallback(() => {
     const slot  = slotOf(currentShotRef.current);
-    const frame = frameCanvases[slot];
+    const frame = frameCanvasesRef.current[slot];
     const video = videoRef.current;
     if (!video) return null;
 
     let w, h;
     if (frame) {
-      w = frame.width;
-      h = frame.height;
+      w = frame.width; h = frame.height;
     } else {
       const ratio = layout.photoRatio ?? 3 / 4;
-      const vw    = video.videoWidth  || 1280;
-      const vh    = video.videoHeight || 960;
-      if (ratio >= 1) {
-        const base = Math.max(vw, vh);
-        w = base; h = Math.round(base / ratio);
-      } else {
-        const base = Math.max(vw, vh);
-        h = base; w = Math.round(base * ratio);
-      }
+      const vw = video.videoWidth  || 1280;
+      const vh = video.videoHeight || 960;
+      if (ratio >= 1) { const base = Math.max(vw, vh); w = base; h = Math.round(base / ratio); }
+      else            { const base = Math.max(vw, vh); h = base; w = Math.round(base * ratio); }
     }
 
     const c   = document.createElement('canvas');
-    c.width   = w; c.height = h;
+    c.width = w; c.height = h;
     const ctx = c.getContext('2d');
-    
+
     if (filterCss) ctx.filter = filterCss;
     drawMirroredVideo(ctx, video, w, h);
     ctx.filter = 'none';
 
-    // 캡처 시 파티클도 함께 그림
-    if (currentEffect.id !== 'none') {
-      // 캡처용 캔버스 크기에 맞춰 파티클을 다시 그리거나 비율 조정 필요
-      // 여기서는 현재 파티클 시스템의 상태를 그대로 캡처 캔버스에 투영
-      const tempParticleSystem = new ParticleEffect(particleSystem.current.count, currentEffect.id);
-      tempParticleSystem.init(w, h);
-      // 현재 메인 캔버스의 파티클 위치 비례해서 복사 (단순화를 위해 현재 상태 복사)
-      particleSystem.current.particles.forEach((p, i) => {
-        const tp = tempParticleSystem.particles[i];
-        if (tp) {
-          tp.x = (p.x / particleSystem.current.width) * w;
-          tp.y = (p.y / particleSystem.current.height) * h;
-          tp.size = (p.size / particleSystem.current.width) * w;
-          tp.angle = p.angle;
-          tp.opacity = p.opacity;
-          tp.speedX = p.speedX; // 방향 유지를 위해
-          tp.draw(ctx);
-        }
+    // 내장 파티클 캡처 (현재 위치 비율 변환)
+    const eid = effectIdRef.current;
+    if (eid !== 'none' && BUILTIN_IDS.has(eid)) {
+      const pw = builtinParticles.current.width  || 1;
+      const ph = builtinParticles.current.height || 1;
+      builtinParticles.current.particles.forEach((p) => {
+        const sx = p.x; const sy = p.y; const ss = p.size;
+        p.x = (p.x / pw) * w; p.y = (p.y / ph) * h; p.size = (p.size / pw) * w;
+        p.draw(ctx);
+        p.x = sx; p.y = sy; p.size = ss;
+      });
+    }
+
+    // 커스텀 파티클 캡처
+    if (eid.startsWith('custom:') && customParticles.current) {
+      const cw = customParticles.current.width  || 1;
+      const ch = customParticles.current.height || 1;
+      customParticles.current.particles.forEach((p) => {
+        const sx = p.x; const sy = p.y; const ss = p.size;
+        const scw = p.canvasWidth; const sch = p.canvasHeight;
+        p.x = (p.x / cw) * w; p.y = (p.y / ch) * h;
+        p.size = (p.size / cw) * w;
+        p.canvasWidth = w; p.canvasHeight = h;
+        p.draw(ctx);
+        p.x = sx; p.y = sy; p.size = ss;
+        p.canvasWidth = scw; p.canvasHeight = sch;
       });
     }
 
     if (frame) ctx.drawImage(frame, 0, 0, w, h);
     return c;
-  }, [frameCanvases, videoRef, filterCss, layout.photoRatio, currentEffect]);
+  }, [filterCss, layout.photoRatio, videoRef]);
 
   // ── 셔터 ─────────────────────────────────────────────────
   const handleShutter = useCallback(async () => {
     if (shootingRef.current) return;
     shootingRef.current = true;
     setShowFilter(false);
+    setShowEffects(false);
     setBtnDisabled(true);
 
     startClip();
@@ -215,19 +280,16 @@ export default function ShootingScreen({
     }
     setCountdown(null);
 
-    // 플래시 효과 (총 0.5초: 0.3초 노출 후 캡처, 0.2초 잔상)
     if (currentFlash.id !== 'none') {
-      setFlash(true);
-      await sleep(300); // 얼굴에 빛이 비칠 시간
+      setFlash(true); await sleep(300);
     } else {
-      setFlash(true); await sleep(60); setFlash(false); // 기본 셔터 느낌
+      setFlash(true); await sleep(60); setFlash(false);
     }
 
     const photo = capturePhoto();
 
     if (currentFlash.id !== 'none') {
-      await sleep(200); // 캡처 후 잠깐 더 보여주기
-      setFlash(false);
+      await sleep(200); setFlash(false);
     }
 
     await sleep(RECORD_AFTER_CAPTURE_MS);
@@ -259,12 +321,7 @@ export default function ShootingScreen({
     } else {
       fitContainer();
       setBtnDisabled(false);
-
-      if (isAuto) {
-        setTimeout(() => {
-          handleShutter();
-        }, 600);
-      }
+      if (isAuto) setTimeout(() => { handleShutter(); }, 600);
     }
     shootingRef.current = false;
   }, [capturePhoto, fitContainer, onComplete, startClip, stopClip, totalShots, currentFlash, isAuto]);
@@ -273,13 +330,12 @@ export default function ShootingScreen({
     setFlashColorIdx((prev) => (prev + 1) % FLASH_OPTIONS.length);
   }, []);
 
-  const toggleEffect = useCallback(() => {
-    setEffectIdx((prev) => (prev + 1) % EFFECT_OPTIONS.length);
+  const selectEffect = useCallback((id) => {
+    setEffectId(id);
+    setShowEffects(false);
   }, []);
 
-  const toggleAuto = useCallback(() => {
-    setIsAuto((v) => !v);
-  }, []);
+  const toggleAuto = useCallback(() => setIsAuto((v) => !v), []);
 
   if (framesLoading) {
     return <div className={styles.wrapper}><p className={styles.loadingText}>테마 로딩 중…</p></div>;
@@ -325,11 +381,27 @@ export default function ShootingScreen({
         </div>
       </div>
 
+      {/* 효과 선택 패널 */}
+      {showEffects && (
+        <div className={styles.effectPanel}>
+          <div className={styles.effectPanelInner}>
+            {effectOptions.map((opt) => (
+              <button
+                key={opt.id}
+                className={`${styles.effectChip} ${effectId === opt.id ? styles.effectChipActive : ''}`}
+                onClick={() => selectEffect(opt.id)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className={styles.bottom}>
-        {/* 필터 토글 버튼 */}
         <button
           className={`${styles.filterToggle} ${showFilter ? styles.filterToggleActive : ''}`}
-          onClick={() => setShowFilter((v) => !v)}
+          onClick={() => { setShowFilter((v) => !v); setShowEffects(false); }}
           disabled={btnDisabled}
           aria-label="필터"
         >
@@ -346,39 +418,33 @@ export default function ShootingScreen({
         </button>
 
         <div className={styles.sideButtons}>
-          {/* 자동/수동 토글 */}
           <button
             className={`${styles.autoToggle} ${isAuto ? styles.autoToggleActive : ''}`}
             onClick={toggleAuto}
             disabled={btnDisabled}
-            aria-label="자동촬영"
           >
             {isAuto ? '자동' : '수동'}
           </button>
 
-          {/* 플래시 토글 버튼 */}
           <button
             className={`${styles.flashToggle} ${currentFlash.id !== 'none' ? styles.flashToggleActive : ''}`}
             onClick={toggleFlash}
             disabled={btnDisabled}
-            aria-label="플래시"
           >
             {currentFlash.label}
           </button>
 
-          {/* 효과 토글 버튼 */}
           <button
-            className={`${styles.effectToggle} ${currentEffect.id !== 'none' ? styles.effectToggleActive : ''}`}
-            onClick={toggleEffect}
+            className={`${styles.effectToggle} ${effectId !== 'none' ? styles.effectToggleActive : ''} ${showEffects ? styles.effectToggleOpen : ''}`}
+            onClick={() => { setShowEffects((v) => !v); setShowFilter(false); }}
             disabled={btnDisabled}
-            aria-label="효과"
+            title={currentEffect.label}
           >
-            {currentEffect.label}
+            {effectId === 'none' ? '효과' : (currentEffect.label.length > 3 ? currentEffect.label.slice(0, 3) : currentEffect.label)}
           </button>
         </div>
       </div>
 
-      {/* 필터 패널 */}
       {showFilter && (
         <FilterBar
           presetId={presetId}

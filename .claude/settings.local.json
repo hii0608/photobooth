@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(mv scripts/generate-templates.js scripts/generate-templates.cjs)",
-      "Bash(node scripts/generate-templates.cjs)"
+      "Bash(node scripts/generate-templates.cjs)",
+      "Bash(npm run:*)",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }

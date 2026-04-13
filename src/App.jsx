@@ -7,6 +7,7 @@ import ThemeSelectScreen      from './components/ThemeSelectScreen';
 import ShootingScreen         from './components/ShootingScreen';
 import ArrangeScreen          from './components/ArrangeScreen';
 import ResultScreen           from './components/ResultScreen';
+import AdminScreen            from './components/AdminScreen';
 
 const SCREEN = {
   START   : 'start',
@@ -15,6 +16,7 @@ const SCREEN = {
   SHOOTING: 'shooting',
   ARRANGE : 'arrange',
   RESULT  : 'result',
+  ADMIN   : 'admin',
 };
 
 export default function App() {
@@ -30,6 +32,7 @@ export default function App() {
   const [selectedVideos, setSelectedVideos] = useState([]);
 
   const handleStart = useCallback(() => setScreen(SCREEN.LAYOUT), []);
+  const handleAdmin = useCallback(() => setScreen(SCREEN.ADMIN), []);
 
   const handleLayoutSelect = useCallback((selectedLayout) => {
     setLayout(selectedLayout);
@@ -82,8 +85,11 @@ export default function App() {
 
   return (
     <>
+      {screen === SCREEN.ADMIN && (
+        <AdminScreen onBack={() => setScreen(SCREEN.START)} />
+      )}
       {screen === SCREEN.START && (
-        <StartScreen onStart={handleStart} />
+        <StartScreen onStart={handleStart} onAdmin={handleAdmin} />
       )}
       {screen === SCREEN.LAYOUT && (
         <LayoutSelectScreen onSelect={handleLayoutSelect} />

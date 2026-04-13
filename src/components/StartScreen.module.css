@@ -41,3 +41,117 @@
 }
 .startBtn:hover  { transform: scale(1.06); box-shadow: 0 10px 50px rgba(0,0,0,0.5); }
 .startBtn:active { transform: scale(0.96); }
+
+/* 관리자 버튼 — 우하단 고정 */
+.adminBtn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.25);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.adminBtn:hover {
+  border-color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.65);
+  background: rgba(255,255,255,0.06);
+}
+
+/* ── 비밀번호 모달 ──────────────────────────────────────── */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  background: #1a1a1a;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 28px 28px 22px;
+  width: min(320px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #fff;
+  text-align: center;
+}
+
+.modalInput {
+  background: rgba(255,255,255,0.07);
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.modalInput:focus        { border-color: rgba(255,255,255,0.4); }
+.modalInputError         { border-color: rgba(255, 80, 80, 0.6) !important; }
+.modalInput::placeholder { color: rgba(255,255,255,0.25); }
+
+.modalError {
+  margin: -6px 0 0;
+  font-size: 0.72rem;
+  color: #ff7070;
+  text-align: center;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.modalCancel {
+  padding: 9px 20px;
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: 100px;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.modalCancel:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+
+.modalConfirm {
+  padding: 9px 24px;
+  background: #fff;
+  border: none;
+  border-radius: 100px;
+  color: #0a0a0a;
+  font-size: 0.8rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.15s;
+  letter-spacing: 0.04em;
+}
+.modalConfirm:hover { background: #e0e0e0; }

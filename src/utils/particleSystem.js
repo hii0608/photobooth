@@ -59,8 +59,6 @@ class Particle {
     ctx.rotate(this.angle);
     ctx.globalAlpha = this.opacity;
 
-    // TODO: 나중에 이미지 에셋이 준비되면 drawImage로 교체
-    // 현재는 이모지나 도형으로 대체
     if (this.type === 'goldfish') {
       ctx.scale(this.speedX > 0 ? 1 : -1, 1);
       ctx.font = `${this.size * 2}px serif`;

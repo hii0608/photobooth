@@ -17,8 +17,8 @@ export function useTheme(themeId, layoutFolder, total) {
   const [error, setError]                 = useState(null);
 
   useEffect(() => {
-    // 기본 테마이거나 필수 값이 없으면 프레임 없이 바로 완료
-    if (!themeId || themeId === 'default' || !layoutFolder || !total) {
+    // 필수 값이 없으면 바로 완료
+    if (!themeId || !layoutFolder || !total) {
       setFrameCanvases([]);
       setLoading(false);
       setError(null);
@@ -34,9 +34,13 @@ export function useTheme(themeId, layoutFolder, total) {
         const paths    = Array.from({ length: total }, (_, i) =>
           getFramePath(themeId, layoutFolder, i),
         );
-        const imgs     = await Promise.all(paths.map((p) => loadImage(p)));
+        // 개별 이미지 로드 — 실패(404 등)하면 null로 처리
+        const results = await Promise.all(
+          paths.map((p) => loadImage(p).catch(() => null)),
+        );
+        const validImgs = results.filter(Boolean);
         // PNG의 알파 채널을 그대로 사용 (크로마키 불필요)
-        const canvases = imgs.map((img) => {
+        const canvases = validImgs.map((img) => {
           const c = document.createElement('canvas');
           c.width  = img.naturalWidth;
           c.height = img.naturalHeight;
@@ -49,6 +53,8 @@ export function useTheme(themeId, layoutFolder, total) {
         }
       } catch (err) {
         if (!cancelled) {
+          // 로드 자체 실패 시 프레임 없이 진행
+          setFrameCanvases([]);
           setError(err.message);
           setLoading(false);
         }

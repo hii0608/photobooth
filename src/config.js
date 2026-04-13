@@ -4,7 +4,10 @@
 
 export const CHROMA_COLOR     = { r: 0, g: 197, b: 0 };
 export const CHROMA_THRESHOLD = 55;
-export const COUNTDOWN_FROM   = 3; // 원래: 3
+export const COUNTDOWN_FROM   = 3;
+
+// 관리자 비밀번호 — 변경 시 이 값만 수정하세요
+export const ADMIN_PASSWORD   = '1234';
 
 // ============================================================
 //  LAYOUTS
