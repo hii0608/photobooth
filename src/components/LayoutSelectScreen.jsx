@@ -1,5 +1,4 @@
 import { LAYOUTS } from '../config';
-import { getThemesForLayout } from '../themes/themeConfig';
 import styles from './LayoutSelectScreen.module.css';
 
 /**
@@ -31,28 +30,21 @@ export default function LayoutSelectScreen({ onSelect }) {
   const portrait  = LAYOUTS.filter((l) => l.orientation === 'portrait');
   const landscape = LAYOUTS.filter((l) => l.orientation === 'landscape');
 
-  const renderCard = (layout) => {
-    const themeCount = getThemesForLayout(layout.folder)
-      .filter((t) => t.id !== 'default').length;
-
-    return (
-      <button
-        key={layout.id}
-        className={styles.card}
-        onClick={() => onSelect(layout)}
-      >
-        <LayoutPreview
-          cols={layout.cols}
-          rows={layout.rows}
-          orientation={layout.orientation}
-        />
-        <span className={styles.cardLabel}>{layout.label}</span>
-        <span className={styles.cardSub}>
-          {layout.total}컷{themeCount > 0 ? ` · 테마 ${themeCount}개` : ''}
-        </span>
-      </button>
-    );
-  };
+  const renderCard = (layout) => (
+    <button
+      key={layout.id}
+      className={styles.card}
+      onClick={() => onSelect(layout)}
+    >
+      <LayoutPreview
+        cols={layout.cols}
+        rows={layout.rows}
+        orientation={layout.orientation}
+      />
+      <span className={styles.cardLabel}>{layout.label}</span>
+      <span className={styles.cardSub}>{layout.total}컷</span>
+    </button>
+  );
 
   return (
     <div className={styles.wrapper}>
