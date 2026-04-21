@@ -14,10 +14,10 @@
 }
 
 .label {
-  font-size: 0.65rem;
+  font-size: 0.82rem;
   font-weight: 800;
-  letter-spacing: 0.2em;
-  color: rgba(61,28,46,0.45);
+  letter-spacing: 0.22em;
+  color: rgba(61,28,46,0.55);
   text-transform: uppercase;
   flex-shrink: 0;
 }

@@ -23,8 +23,8 @@
 .title::before { content: '✦ '; color: #FF6B9D; font-size: 0.55em; vertical-align: middle; }
 
 .sub {
-  font-size: 0.72rem;
-  color: rgba(61,28,46,0.45);
+  font-size: 0.9rem;
+  color: rgba(61,28,46,0.55);
   letter-spacing: 0.06em;
   flex-shrink: 0;
   margin-bottom: 12px;

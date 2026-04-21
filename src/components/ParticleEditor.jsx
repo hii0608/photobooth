@@ -43,6 +43,18 @@ export default function ParticleEditor({ initialAsset, onSave, onCancel }) {
   // 저장 중
   const [saving, setSaving] = useState(false);
 
+  // 선택된 스탬프(클릭 시 삭제 버튼 3초간 노출)
+  const [selectedStamp, setSelectedStamp] = useState(null); // `existing:<id>` | `new:<idx>`
+  const selectTimerRef = useRef(null);
+  const selectStamp = useCallback((key) => {
+    setSelectedStamp(key);
+    if (selectTimerRef.current) clearTimeout(selectTimerRef.current);
+    selectTimerRef.current = setTimeout(() => setSelectedStamp(null), 3000);
+  }, []);
+  useEffect(() => () => {
+    if (selectTimerRef.current) clearTimeout(selectTimerRef.current);
+  }, []);
+
   // ── 기존 이미지 로드 (수정 모드) ──────────────────────────
   useEffect(() => {
     if (!existingIds.length) { setExistingImgs([]); return; }
@@ -166,30 +178,50 @@ export default function ParticleEditor({ initialAsset, onSave, onCancel }) {
           {/* 기존 이미지 (수정 모드) */}
           {existingImgs.length > 0 && (
             <div className={styles.imgGrid}>
-              {existingImgs.map((img, i) => (
-                <div key={existingIds[i]} className={styles.imgItem}>
-                  <img src={img.src} alt="" className={styles.imgThumb} />
-                  <button
-                    className={styles.imgRemove}
-                    onClick={() => removeExisting(existingIds[i])}
-                  >×</button>
-                </div>
-              ))}
+              {existingImgs.map((img, i) => {
+                const key = `existing:${existingIds[i]}`;
+                const isSelected = selectedStamp === key;
+                return (
+                  <div
+                    key={existingIds[i]}
+                    className={`${styles.imgItem} ${isSelected ? styles.imgItemSelected : ''}`}
+                    onClick={() => selectStamp(key)}
+                  >
+                    <img src={img.src} alt="" className={styles.imgThumb} />
+                    {isSelected && (
+                      <button
+                        className={styles.imgRemoveBig}
+                        onClick={(e) => { e.stopPropagation(); removeExisting(existingIds[i]); }}
+                      >삭제</button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
           {/* 새 이미지 미리보기 */}
           {newPreviews.length > 0 && (
             <div className={styles.imgGrid}>
-              {newPreviews.map((url, i) => (
-                <div key={url} className={styles.imgItem}>
-                  <img src={url} alt="" className={styles.imgThumb} />
-                  <button
-                    className={styles.imgRemove}
-                    onClick={() => removeNewFile(i)}
-                  >×</button>
-                </div>
-              ))}
+              {newPreviews.map((url, i) => {
+                const key = `new:${i}`;
+                const isSelected = selectedStamp === key;
+                return (
+                  <div
+                    key={url}
+                    className={`${styles.imgItem} ${isSelected ? styles.imgItemSelected : ''}`}
+                    onClick={() => selectStamp(key)}
+                  >
+                    <img src={url} alt="" className={styles.imgThumb} />
+                    {isSelected && (
+                      <button
+                        className={styles.imgRemoveBig}
+                        onClick={(e) => { e.stopPropagation(); removeNewFile(i); setSelectedStamp(null); }}
+                      >삭제</button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 

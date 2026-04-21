@@ -24,8 +24,8 @@
 .title::before { content: '✦ '; color: #FF6B9D; font-size: 0.6em; vertical-align: middle; }
 
 .sub {
-  font-size: 0.8rem;
-  color: rgba(61,28,46,0.45);
+  font-size: 0.95rem;
+  color: rgba(61,28,46,0.55);
   letter-spacing: 0.08em;
   flex-shrink: 0;
 }
@@ -39,12 +39,24 @@
 }
 
 .sectionLabel {
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
-  color: rgba(61,28,46,0.38);
+  letter-spacing: 0.18em;
+  color: rgba(61,28,46,0.5);
   text-transform: uppercase;
-  padding-left: 2px;
+  text-align: center;
+  position: relative;
+  padding: 4px 0;
+}
+.sectionLabel::before,
+.sectionLabel::after {
+  content: '';
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background: #FFD6E8;
+  vertical-align: middle;
+  margin: 0 10px;
 }
 
 .grid {
@@ -104,7 +116,7 @@
 .cell { background: #FFE4EE; min-width: 0; min-height: 0; }
 
 .cardLabel {
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: #3D1C2E;
   letter-spacing: 0.04em;
@@ -113,9 +125,9 @@
 }
 
 .cardSub {
-  font-size: 0.65rem;
-  color: rgba(61,28,46,0.4);
-  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  color: rgba(61,28,46,0.5);
+  letter-spacing: 0.06em;
 }
 
 /* ── 데스크톱: 카드 크기·여백 확대 ─────────────────────── */

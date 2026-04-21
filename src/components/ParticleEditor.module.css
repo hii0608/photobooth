@@ -84,30 +84,51 @@
 
 .imgItem {
   position: relative;
-  width: 54px;
-  height: 54px;
-  border-radius: 8px;
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
   overflow: hidden;
   border: 1.5px solid #FFD6E8;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
 }
-.imgThumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+.imgItem:hover { border-color: #FF6B9D; }
+.imgItem:active { transform: scale(0.96); }
 
-.imgRemove {
+.imgItemSelected {
+  border-color: #FF6B9D !important;
+  box-shadow: 0 0 0 2px rgba(255,107,157,0.35);
+}
+.imgItemSelected .imgThumb {
+  opacity: 0.35;
+  filter: saturate(0.5);
+}
+
+.imgThumb { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.15s, filter 0.15s; }
+
+.imgRemoveBig {
   position: absolute;
-  top: 1px;
-  right: 1px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: rgba(255,107,157,0.85);
+  inset: 0;
+  margin: auto;
+  width: 52px;
+  height: 26px;
+  border-radius: 100px;
+  background: #FF6B9D;
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
   border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
+  box-shadow: 0 3px 10px rgba(255,107,157,0.4);
+  animation: stampPop 0.15s ease;
+}
+.imgRemoveBig:hover  { background: #ff4d85; }
+.imgRemoveBig:active { transform: scale(0.94); }
+
+@keyframes stampPop {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
 }
 
 /* 애니메이션 타입 그리드 */

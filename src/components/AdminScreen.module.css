@@ -52,8 +52,8 @@
 }
 .desc p {
   margin: 0 0 4px;
-  font-size: 0.76rem;
-  color: rgba(61,28,46,0.5);
+  font-size: 0.9rem;
+  color: rgba(61,28,46,0.6);
   line-height: 1.5;
 }
 .desc p:last-child { margin: 0; }
@@ -130,8 +130,8 @@
 }
 
 .cardMeta {
-  font-size: 0.7rem;
-  color: rgba(61,28,46,0.4);
+  font-size: 0.85rem;
+  color: rgba(61,28,46,0.55);
   letter-spacing: 0.03em;
 }
 
