@@ -32,7 +32,7 @@
 
 .section {
   width: 100%;
-  max-width: 480px;
+  max-width: min(100%, 880px);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -49,8 +49,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: clamp(8px, 2vw, 12px);
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: clamp(8px, 2vw, 14px);
   width: 100%;
 }
 

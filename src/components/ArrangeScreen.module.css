@@ -103,25 +103,22 @@
 .photoListContainer::-webkit-scrollbar-thumb { background: #FFB6C1; border-radius: 2px; }
 
 .photoList {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 8px;
   width: 100%;
-  max-width: 520px;
+  max-width: min(100%, 960px);
   margin: 0 auto;
 }
 
 .photoItem {
   position: relative;
-  width: calc(33.33% - 6px);
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
   border: 2px solid #FFD6E8;
   transition: transform 0.1s, border-color 0.2s, box-shadow 0.15s;
 }
-@media (min-width: 480px) { .photoItem { width: calc(25% - 6px); } }
 .photoItem:active { transform: scale(0.96); }
 .photoItem.selected {
   border-color: #FF6B9D;
@@ -169,7 +166,7 @@
   display: flex;
   gap: 10px;
   width: 100%;
-  max-width: 520px;
+  max-width: min(100%, 720px);
   flex-shrink: 0;
   margin-top: 16px;
 }

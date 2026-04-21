@@ -95,6 +95,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  max-width: min(100%, 960px);
+  align-self: center;
 }
 .list::-webkit-scrollbar       { width: 4px; }
 .list::-webkit-scrollbar-thumb { background: #FFB6C1; border-radius: 2px; }

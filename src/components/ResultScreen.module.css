@@ -26,8 +26,8 @@
 .previewContainer {
   flex: 1;
   width: 100%;
-  max-width: 500px;
-  max-height: 65vh;
+  max-width: min(100%, 720px);
+  max-height: 72vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -106,7 +106,7 @@
   justify-content: center;
   gap: 10px;
   width: 100%;
-  max-width: 520px;
+  max-width: min(100%, 720px);
   flex-shrink: 0;
 }
 
