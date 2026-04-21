@@ -1,10 +1,13 @@
+/* ── 베이비핑크 땡땡이 바탕 ──────────────────────────────── */
 .container {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0a0a0a;
+  background-color: #fff;
+  background-image: radial-gradient(circle, #FFB6C1 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
 }
 
 .overlay {
@@ -13,36 +16,78 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
+  gap: 36px;
   padding: 20px;
 }
 
+/* 별 장식 타이틀 */
 .title {
-  font-size: clamp(1.8rem, 6vw, 4rem);
+  font-size: clamp(2rem, 7vw, 4.5rem);
   font-weight: 900;
   letter-spacing: 0.18em;
-  color: #fff;
-  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.7);
+  color: #3D1C2E;
+  text-shadow: 3px 3px 0 #FFB6C1, 5px 5px 0 rgba(255,107,157,0.18);
   user-select: none;
+  position: relative;
+}
+.title::before {
+  content: '✦';
+  position: absolute;
+  top: -0.6em;
+  left: -0.5em;
+  font-size: 0.45em;
+  color: #FF6B9D;
+  animation: twinkle 2s ease-in-out infinite;
+}
+.title::after {
+  content: '✦';
+  position: absolute;
+  bottom: -0.4em;
+  right: -0.4em;
+  font-size: 0.35em;
+  color: #FFB6C1;
+  animation: twinkle 2.5s ease-in-out infinite 0.8s;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  50%       { opacity: 0.5; transform: scale(1.3) rotate(20deg); }
 }
 
 .startBtn {
-  padding: 15px 60px;
-  font-size: clamp(0.95rem, 2.5vw, 1.25rem);
-  font-weight: 800;
+  padding: 16px 64px;
+  font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+  font-weight: 900;
   letter-spacing: 0.25em;
-  background: #fff;
-  color: #0a0a0a;
+  background: #FF6B9D;
+  color: #fff;
   border: none;
   border-radius: 100px;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 6px 40px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s;
+  box-shadow: 0 6px 0 #c94a77, 0 10px 30px rgba(255,107,157,0.35);
+  position: relative;
 }
-.startBtn:hover  { transform: scale(1.06); box-shadow: 0 10px 50px rgba(0,0,0,0.5); }
-.startBtn:active { transform: scale(0.96); }
+.startBtn::after {
+  content: '★';
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+.startBtn:hover {
+  background: #ff8db8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #c94a77, 0 14px 36px rgba(255,107,157,0.4);
+}
+.startBtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #c94a77, 0 4px 16px rgba(255,107,157,0.3);
+}
 
-/* 관리자 버튼 — 우하단 고정 */
+/* 관리자 버튼 */
 .adminBtn {
   position: absolute;
   bottom: 16px;
@@ -50,9 +95,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: transparent;
-  border: 1.5px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.6);
+  border: 1.5px solid rgba(255,182,193,0.5);
+  color: rgba(61,28,46,0.3);
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -62,63 +107,65 @@
   line-height: 1;
 }
 .adminBtn:hover {
-  border-color: rgba(255,255,255,0.35);
-  color: rgba(255,255,255,0.65);
-  background: rgba(255,255,255,0.06);
+  border-color: #FF6B9D;
+  color: #FF6B9D;
+  background: #fff;
 }
 
 /* ── 비밀번호 모달 ──────────────────────────────────────── */
 .modalBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(61,28,46,0.35);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 }
 
 .modal {
-  background: #1a1a1a;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 16px;
+  background: #fff;
+  border: 2px solid #FFB6C1;
+  border-radius: 20px;
   padding: 28px 28px 22px;
   width: min(320px, 90vw);
   display: flex;
   flex-direction: column;
   gap: 14px;
+  box-shadow: 0 8px 40px rgba(255,107,157,0.2);
 }
 
 .modalTitle {
   margin: 0;
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 900;
   letter-spacing: 0.1em;
-  color: #fff;
+  color: #3D1C2E;
   text-align: center;
 }
+.modalTitle::before { content: '✦ '; color: #FF6B9D; }
+.modalTitle::after  { content: ' ✦'; color: #FF6B9D; }
 
 .modalInput {
-  background: rgba(255,255,255,0.07);
-  border: 1.5px solid rgba(255,255,255,0.15);
+  background: #FFF5F9;
+  border: 1.5px solid #FFD6E8;
   border-radius: 10px;
-  color: #fff;
+  color: #3D1C2E;
   font-size: 0.95rem;
   padding: 10px 14px;
   outline: none;
   transition: border-color 0.15s;
   width: 100%;
-  box-sizing: border-box;
 }
-.modalInput:focus        { border-color: rgba(255,255,255,0.4); }
-.modalInputError         { border-color: rgba(255, 80, 80, 0.6) !important; }
-.modalInput::placeholder { color: rgba(255,255,255,0.25); }
+.modalInput:focus        { border-color: #FF6B9D; }
+.modalInputError         { border-color: #ff4d4d !important; }
+.modalInput::placeholder { color: rgba(61,28,46,0.3); }
 
 .modalError {
   margin: -6px 0 0;
   font-size: 0.72rem;
-  color: #ff7070;
+  color: #ff4d4d;
   text-align: center;
 }
 
@@ -132,26 +179,28 @@
 .modalCancel {
   padding: 9px 20px;
   background: transparent;
-  border: 1.5px solid rgba(255,255,255,0.18);
+  border: 1.5px solid #FFD6E8;
   border-radius: 100px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(61,28,46,0.5);
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s;
 }
-.modalCancel:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+.modalCancel:hover { color: #3D1C2E; border-color: #FF6B9D; }
 
 .modalConfirm {
   padding: 9px 24px;
-  background: #fff;
+  background: #FF6B9D;
   border: none;
   border-radius: 100px;
-  color: #0a0a0a;
+  color: #fff;
   font-size: 0.8rem;
   font-weight: 900;
   cursor: pointer;
   transition: background 0.15s;
+  box-shadow: 0 3px 0 #c94a77;
   letter-spacing: 0.04em;
 }
-.modalConfirm:hover { background: #e0e0e0; }
+.modalConfirm:hover  { background: #ff8db8; }
+.modalConfirm:active { transform: translateY(1px); box-shadow: 0 1px 0 #c94a77; }

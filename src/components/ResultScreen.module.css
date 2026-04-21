@@ -6,7 +6,9 @@
   align-items: center;
   padding: 16px 12px 24px;
   gap: 12px;
-  background: #000;
+  background-color: #fff;
+  background-image: radial-gradient(circle, #FFB6C1 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -15,29 +17,26 @@
   font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 0.2em;
-  opacity: 0.5;
+  color: rgba(61,28,46,0.45);
   text-transform: uppercase;
   flex-shrink: 0;
 }
+.label::before { content: '✦ '; color: #FF6B9D; }
 
-/* 
-  미리보기 컨테이너:
-  화면 중앙에서 남은 공간을 모두 차지하도록 flex: 1 설정.
-  max-height를 70% 정도로 제한하여 버튼이 밀려나지 않게 함.
-*/
 .previewContainer {
   flex: 1;
   width: 100%;
   max-width: 500px;
-  max-height: 65vh; /* 중요: 버튼 가독성을 위해 높이 제한 */
+  max-height: 65vh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   min-height: 0;
-  background: #0a0a0a;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 0 #FFB6C1, 0 12px 40px rgba(255,107,157,0.18);
+  border: 2px solid #FFD6E8;
 }
 
 .fullPreview {
@@ -45,7 +44,7 @@
   max-height: 100%;
   object-fit: contain;
   display: block;
-  border-radius: 4px;
+  border-radius: 12px;
 }
 
 .controls {
@@ -73,13 +72,11 @@
   position: relative;
   width: 36px;
   height: 20px;
-  background: rgba(255,255,255,0.15);
+  background: #FFD6E8;
   border-radius: 100px;
   transition: background 0.2s;
 }
-.flipCheckbox:checked + .flipTrack {
-  background: #ffdc50;
-}
+.flipCheckbox:checked + .flipTrack { background: #FF6B9D; }
 
 .flipThumb {
   position: absolute;
@@ -90,23 +87,22 @@
   background: #fff;
   border-radius: 50%;
   transition: transform 0.2s;
+  box-shadow: 0 1px 4px rgba(255,107,157,0.3);
 }
 .flipCheckbox:checked + .flipTrack .flipThumb {
   transform: translateX(16px);
-  background: #000;
 }
 
 .flipLabel {
   font-size: 0.75rem;
-  font-weight: 600;
-  opacity: 0.8;
-  color: #fff;
+  font-weight: 700;
+  color: rgba(61,28,46,0.7);
 }
 
 /* ── 액션 버튼 ── */
 .actions {
   display: flex;
-  flex-wrap: wrap; /* 모바일 대응: 버튼이 많으면 줄바꿈 */
+  flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
   width: 100%;
@@ -119,71 +115,61 @@
   font-size: 0.85rem;
   font-weight: 800;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: transform 0.1s, opacity 0.15s;
+  transition: transform 0.1s, box-shadow 0.15s;
   flex: 1;
   min-width: 80px;
   white-space: nowrap;
 }
-
 .btnSave:active, .btnSaveSub:active, .btnVideo:active, .btnRetake:active {
   transform: scale(0.96);
 }
 
 .btnSave {
-  background: #fff;
-  color: #000;
+  background: #FF6B9D;
+  color: #fff;
+  box-shadow: 0 4px 0 #c94a77;
 }
+.btnSave:hover { background: #ff8db8; }
 
 .btnSaveSub {
-  background: #2a2a2a;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.1);
+  background: #FFF5F9;
+  color: #3D1C2E;
+  border: 1.5px solid #FFD6E8;
 }
+.btnSaveSub:hover { background: #FFE4EE; border-color: #FF6B9D; }
 
 .btnVideo {
-  background: #2a2700;
-  color: #ffdc50;
-  border: 1px solid rgba(255,220,80,0.3);
+  background: #FFF9E6;
+  color: #7a5c00;
+  border: 1.5px solid #FFE066;
 }
+.btnVideo:hover { background: #FFF0B3; }
 
 .btnRetake {
-  background: #1a1a1a;
-  color: rgba(255,255,255,0.5);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.7);
+  color: rgba(61,28,46,0.55);
+  border: 1.5px solid #FFD6E8;
 }
+.btnRetake:hover { background: #fff; color: #3D1C2E; border-color: #FF6B9D; }
 
 @media (max-width: 380px) {
-  .actions {
-    gap: 8px;
-  }
-  .btnSave, .btnSaveSub, .btnVideo, .btnRetake {
-    padding: 10px 12px;
-    font-size: 0.75rem;
-  }
+  .actions { gap: 8px; }
+  .btnSave, .btnSaveSub, .btnVideo, .btnRetake { padding: 10px 12px; font-size: 0.75rem; }
 }
 
-/* DEBUG LAYOUT */
-.debugLayout {
-  border: 4px solid #00ff00 !important;
-}
-.debugLayout .previewContainer {
-  background: rgba(255, 0, 0, 0.2);
-  border: 2px dashed #ff0000;
-}
-.debugLayout .controls {
-  border: 2px solid #00ffff;
-}
-.debugLayout .actions {
-  border: 2px solid #ffff00;
-}
+/* DEBUG */
+.debugLayout { border: 4px solid #00ff00 !important; }
+.debugLayout .previewContainer { background: rgba(255,0,0,0.1); border: 2px dashed #ff0000; }
+.debugLayout .controls         { border: 2px solid cyan; }
+.debugLayout .actions          { border: 2px solid yellow; }
 
 /* ── 영상 합치기 로딩 오버레이 ── */
 .loadingOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(61,28,46,0.55);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -195,58 +181,48 @@
 .loadingCard {
   width: 100%;
   max-width: 340px;
-  background: #1a1a1a;
-  border-radius: 20px;
+  background: #fff;
+  border: 2px solid #FFD6E8;
+  border-radius: 24px;
   padding: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 0 #FFB6C1, 0 20px 50px rgba(255,107,157,0.25);
   animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
 }
 
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .adPlaceholder {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  background: #2a2a2a;
+  aspect-ratio: 16/9;
+  background: #FFF5F9;
   border-radius: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border: 2px dashed #FFB6C1;
 }
-
-.adPlaceholder p {
-  font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.3);
-  margin-bottom: 4px;
-}
-
-.adPlaceholder span {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.2);
-}
+.adPlaceholder p    { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; color: #FFB6C1; margin-bottom: 4px; }
+.adPlaceholder span { font-size: 0.75rem; color: rgba(61,28,46,0.3); }
 
 .loadingText {
   font-size: 0.95rem;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 800;
+  color: #3D1C2E;
   margin-bottom: 12px;
 }
 
 .progressBarWrapper {
   width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  height: 8px;
+  background: #FFE4EE;
   border-radius: 100px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -254,13 +230,13 @@
 
 .progressBarFill {
   height: 100%;
-  background: linear-gradient(90deg, #ffdc50, #ffaa00);
+  background: linear-gradient(90deg, #FF6B9D, #FFB6C1);
   border-radius: 100px;
   transition: width 0.3s ease;
 }
 
 .progressPercent {
   font-size: 0.8rem;
-  font-weight: 800;
-  color: #ffdc50;
+  font-weight: 900;
+  color: #FF6B9D;
 }

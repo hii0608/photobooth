@@ -5,30 +5,33 @@
   flex-direction: column;
   align-items: center;
   padding: 16px 16px 20px;
-  background: #0a0a0a;
-  overflow: hidden; /* 전체 스크롤 방지 */
+  background-color: #fff;
+  background-image: radial-gradient(circle, #FFB6C1 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+  overflow: hidden;
 }
 
 .title {
   font-size: clamp(1.1rem, 4vw, 1.5rem);
   font-weight: 900;
   letter-spacing: 0.06em;
-  color: #fff;
+  color: #3D1C2E;
   flex-shrink: 0;
   margin-bottom: 2px;
+  position: relative;
 }
+.title::before { content: '✦ '; color: #FF6B9D; font-size: 0.55em; vertical-align: middle; }
 
 .sub {
   font-size: 0.72rem;
-  opacity: 0.4;
+  color: rgba(61,28,46,0.45);
   letter-spacing: 0.06em;
   flex-shrink: 0;
   margin-bottom: 12px;
 }
 
-/* 템플릿 그리드 섹션: 화면 높이에 따라 가변 */
 .templateSection {
-  flex: 1.2; /* 사진 리스트보다 우선순위를 높게 둠 */
+  flex: 1.2;
   min-height: 0;
   width: 100%;
   display: flex;
@@ -42,16 +45,16 @@
   gap: 6px;
   height: 100%;
   max-height: 100%;
-  aspect-ratio: auto; /* 비율은 각 슬롯의 aspectRatio 합산으로 자동 결정되도록 유도 */
-  background: #1a1a1a;
+  background: rgba(255,255,255,0.9);
+  border: 2px solid #FFD6E8;
   padding: 10px;
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(255,107,157,0.12);
 }
 
-/* 개 개별 슬롯의 높이가 templateSection에 맞춰지도록 설정 */
 .templateSlot {
-  background: #2a2a2a;
-  border-radius: 4px;
+  background: #FFF5F9;
+  border-radius: 6px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -59,17 +62,14 @@
   cursor: pointer;
   border: 2px solid transparent;
   transition: border-color 0.2s, background 0.2s;
-  height: 100%; /* 부모 높이에 맞춤 */
+  height: 100%;
 }
-
-.templateSlot:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-}
+.templateSlot:hover { border-color: #FF6B9D; background: #FFE4EE; }
 
 .emptySlot {
   font-size: 1rem;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.15);
+  color: #FFB6C1;
 }
 
 .slotImage {
@@ -81,25 +81,26 @@
 
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 .divider {
   width: 100%;
   height: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  background: #FFD6E8;
   margin: 12px 0;
   flex-shrink: 0;
 }
 
-/* 전체 촬영된 사진 리스트 컨테이너 */
 .photoListContainer {
   flex: 1;
   min-height: 0;
   width: 100%;
-  overflow-y: auto; /* 이 영역만 스크롤 */
+  overflow-y: auto;
   padding-right: 4px;
 }
+.photoListContainer::-webkit-scrollbar       { width: 3px; }
+.photoListContainer::-webkit-scrollbar-thumb { background: #FFB6C1; border-radius: 2px; }
 
 .photoList {
   display: flex;
@@ -114,25 +115,17 @@
 .photoItem {
   position: relative;
   width: calc(33.33% - 6px);
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
-  border: 2px solid transparent;
-  transition: transform 0.1s, border-color 0.2s;
+  border: 2px solid #FFD6E8;
+  transition: transform 0.1s, border-color 0.2s, box-shadow 0.15s;
 }
-
-@media (min-width: 480px) {
-  .photoItem {
-    width: calc(25% - 6px);
-  }
-}
-
-.photoItem:active {
-  transform: scale(0.96);
-}
-
+@media (min-width: 480px) { .photoItem { width: calc(25% - 6px); } }
+.photoItem:active { transform: scale(0.96); }
 .photoItem.selected {
-  border-color: rgba(255, 220, 80, 0.9);
+  border-color: #FF6B9D;
+  box-shadow: 0 0 0 2px rgba(255,107,157,0.3);
 }
 
 .photoThumb {
@@ -142,10 +135,9 @@
   display: block;
   transition: opacity 0.2s, filter 0.2s;
 }
-
 .photoItem.selected .photoThumb {
-  opacity: 0.3;
-  filter: grayscale(0.5);
+  opacity: 0.45;
+  filter: saturate(0.5);
 }
 
 .badge {
@@ -155,25 +147,24 @@
   min-width: 18px;
   height: 18px;
   padding: 0 4px;
-  background: #ffdc50;
-  color: #000;
+  background: #FF6B9D;
+  color: #fff;
   font-weight: 900;
   font-size: 0.65rem;
   border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 6px rgba(255,107,157,0.4);
   z-index: 2;
   animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @keyframes popIn {
   from { transform: scale(0); }
-  to { transform: scale(1); }
+  to   { transform: scale(1); }
 }
 
-/* 하단 버튼 */
 .actions {
   display: flex;
   gap: 10px;
@@ -185,9 +176,9 @@
 
 .btnConfirm, .btnRetake {
   flex: 1;
-  padding: 12px;
+  padding: 13px;
   border: none;
-  border-radius: 10px;
+  border-radius: 14px;
   font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -197,54 +188,25 @@
 }
 
 .btnConfirm {
-  background: #fff;
-  color: #0a0a0a;
+  background: #FF6B9D;
+  color: #fff;
+  box-shadow: 0 4px 0 #c94a77;
 }
-
-.btnConfirm:hover:not(:disabled) {
-  background: #f0f0f0;
-}
-
-.btnConfirm:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.btnConfirm:disabled {
-  background: #333;
-  color: #666;
-  cursor: not-allowed;
-}
+.btnConfirm:hover:not(:disabled)  { background: #ff8db8; }
+.btnConfirm:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #c94a77; }
+.btnConfirm:disabled { background: #FFD6E8; color: #FFB6C1; cursor: not-allowed; box-shadow: none; }
 
 .btnRetake {
-  background: #1e1e1e;
-  color: rgba(255,255,255,0.7);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.8);
+  color: rgba(61,28,46,0.65);
+  border: 1.5px solid #FFD6E8;
 }
+.btnRetake:hover  { background: #fff; color: #3D1C2E; border-color: #FF6B9D; }
+.btnRetake:active { transform: scale(0.97); }
 
-.btnRetake:hover {
-  background: #2a2a2a;
-  color: #fff;
-}
-
-.btnRetake:active {
-  transform: scale(0.97);
-}
-
-/* DEBUG LAYOUT */
-.debugLayout {
-  border: 4px solid #00ff00 !important;
-}
-.debugLayout .templateSection {
-  background: rgba(255, 0, 0, 0.2);
-  border: 2px dashed #ff0000;
-}
-.debugLayout .templateGrid {
-  border: 2px solid #00ffff;
-}
-.debugLayout .photoListContainer {
-  background: rgba(0, 0, 255, 0.1);
-  border: 2px solid #0000ff;
-}
-.debugLayout .actions {
-  border: 2px solid #ffff00;
-}
+/* DEBUG */
+.debugLayout { border: 4px solid #00ff00 !important; }
+.debugLayout .templateSection    { background: rgba(255,0,0,0.1);  border: 2px dashed #ff0000; }
+.debugLayout .templateGrid       { border: 2px solid #00ffff; }
+.debugLayout .photoListContainer { background: rgba(0,0,255,0.05); border: 2px solid #0000ff; }
+.debugLayout .actions            { border: 2px solid #ffff00; }

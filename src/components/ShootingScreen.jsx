@@ -62,6 +62,7 @@ export default function ShootingScreen({
   const [flashColorIdx, setFlashColorIdx]   = useState(0);
   const [effectId, setEffectId]             = useState('none');
   const [isAuto, setIsAuto]                 = useState(true);
+  const isAutoRef                           = useRef(true);   // Bug1: 클로저 문제 방지
   const [btnDisabled, setBtnDisabled]       = useState(false);
   const [showFilter, setShowFilter]         = useState(false);
   const [showEffects, setShowEffects]       = useState(false);
@@ -75,9 +76,10 @@ export default function ShootingScreen({
 
   const currentFlash = FLASH_OPTIONS[flashColorIdx];
 
-  // ── effectId·frameCanvases를 ref에 동기화 (render loop용) ──
-  useEffect(() => { effectIdRef.current = effectId; }, [effectId]);
+  // ── effectId·frameCanvases·isAuto를 ref에 동기화 (render loop / 셔터용) ──
+  useEffect(() => { effectIdRef.current  = effectId; }, [effectId]);
   useEffect(() => { frameCanvasesRef.current = frameCanvases; }, [frameCanvases]);
+  useEffect(() => { isAutoRef.current    = isAuto;   }, [isAuto]);
 
   // ── 효과 옵션 (내장 + 노출 중인 커스텀) ──────────────────
   const effectOptions = useMemo(() => [
@@ -88,11 +90,18 @@ export default function ShootingScreen({
   const currentEffect = effectOptions.find((e) => e.id === effectId) ?? effectOptions[0];
 
   // ── 커스텀 에셋 이미지 사전 로드 ─────────────────────────
+  // Bug2: 이미지 로드 완료 후 현재 선택된 효과면 즉시 reinit
   useEffect(() => {
     visibleAssets.forEach((asset) => {
       if (customImgCache.current.has(asset.id)) return;
       loadParticleImages(asset.imageIds ?? []).then((imgs) => {
         customImgCache.current.set(asset.id, imgs);
+        if (
+          effectIdRef.current === `custom:${asset.id}` &&
+          customParticles.current
+        ) {
+          customParticles.current.reinit(customParticles.current.config, imgs);
+        }
       });
     });
   }, [visibleAssets]);
@@ -321,10 +330,11 @@ export default function ShootingScreen({
     } else {
       fitContainer();
       setBtnDisabled(false);
-      if (isAuto) setTimeout(() => { handleShutter(); }, 600);
+      // Bug1 fix: isAutoRef.current로 최신 상태 읽기 (클로저 stale 방지)
+      if (isAutoRef.current) setTimeout(() => { handleShutter(); }, 600);
     }
     shootingRef.current = false;
-  }, [capturePhoto, fitContainer, onComplete, startClip, stopClip, totalShots, currentFlash, isAuto]);
+  }, [capturePhoto, fitContainer, onComplete, startClip, stopClip, totalShots, currentFlash]);
 
   const toggleFlash = useCallback(() => {
     setFlashColorIdx((prev) => (prev + 1) % FLASH_OPTIONS.length);
