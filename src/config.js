@@ -45,7 +45,7 @@ export const LAYOUTS = [
   },
   {
     id         : '2x2_v',
-    label      : '2 × 2 세로',
+    label      : '2 × 2',
     cols       : 2,
     rows       : 2,
     total      : 4,
@@ -77,7 +77,7 @@ export const LAYOUTS = [
   },
   {
     id         : '2x2_h',
-    label      : '2 × 2 가로',
+    label      : '2 × 2',
     cols       : 2,
     rows       : 2,
     total      : 4,
