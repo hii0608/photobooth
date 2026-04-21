@@ -354,3 +354,11 @@
   border-color: rgba(255, 107, 157, 0.6) !important;
   color: #ff9ec8 !important;
 }
+
+/* ── 데스크톱: 카메라 영역 극대화 ─────────────────────── */
+@media (min-width: 768px) {
+  .wrapper { padding: 14px 10px 18px; gap: 10px; }
+  .wrapper::before { top: 10px; left: 14px; }
+  .wrapper::after  { bottom: 10px; right: 14px; }
+  .middle { padding: 0 4px; }
+}

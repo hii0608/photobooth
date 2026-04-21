@@ -84,8 +84,8 @@ body {
 
   /* App Shell: 랜드스케이프 데스크톱 윈도우 */
   #root {
-    width: min(95vw, 1040px);
-    height: min(88vh, 680px);
+    width: min(96vw, 1080px);
+    height: min(92vh, 820px);
     border-radius: 24px;
     overflow: hidden;
     box-shadow:
@@ -100,8 +100,8 @@ body {
 /* ── 일반 데스크톱 ───────────────────────────────────── */
 @media (min-width: 1280px) {
   #root {
-    width: min(92vw, 1220px);
-    height: min(86vh, 760px);
+    width: min(92vw, 1280px);
+    height: min(92vh, 920px);
     border-radius: 28px;
   }
 }
@@ -109,7 +109,7 @@ body {
 /* ── 큰 데스크톱 ─────────────────────────────────────── */
 @media (min-width: 1600px) {
   #root {
-    width: min(88vw, 1400px);
-    height: min(86vh, 860px);
+    width: min(90vw, 1440px);
+    height: min(92vh, 1020px);
   }
 }
