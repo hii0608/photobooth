@@ -115,3 +115,13 @@
   color: rgba(61,28,46,0.4);
   letter-spacing: 0.08em;
 }
+
+/* ── 데스크톱: 카드 크기 확대 ──────────────────────────── */
+@media (min-width: 768px) {
+  .wrapper { gap: 14px; padding: 28px 24px 32px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+  .card { padding: 18px 10px 14px; gap: 10px; border-radius: 20px; }
+  .previewFrame  { max-width: 96px; max-height: 96px; }
+  .previewPortrait  { width: 60px; height: 80px; }
+  .previewLandscape { width: 80px; height: 60px; }
+}

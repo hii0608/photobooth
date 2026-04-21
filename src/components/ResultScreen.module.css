@@ -159,6 +159,13 @@
   .btnSave, .btnSaveSub, .btnVideo, .btnRetake { padding: 10px 12px; font-size: 0.75rem; }
 }
 
+/* ── 데스크톱: 프리뷰/버튼 확대 ────────────────────────── */
+@media (min-width: 768px) {
+  .wrapper { padding: 28px 24px 32px; gap: 16px; }
+  .previewContainer { border-radius: 20px; }
+  .btnSave, .btnSaveSub, .btnVideo, .btnRetake { padding: 16px 20px; border-radius: 16px; }
+}
+
 /* DEBUG */
 .debugLayout { border: 4px solid #00ff00 !important; }
 .debugLayout .previewContainer { background: rgba(255,0,0,0.1); border: 2px dashed #ff0000; }

@@ -201,6 +201,14 @@
 .btnRetake:hover  { background: #fff; color: #3D1C2E; border-color: #FF6B9D; }
 .btnRetake:active { transform: scale(0.97); }
 
+/* ── 데스크톱: 썸네일/액션 확대 ────────────────────────── */
+@media (min-width: 768px) {
+  .wrapper { padding: 28px 32px 32px; }
+  .photoList { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+  .templateGrid { padding: 16px; border-radius: 22px; }
+  .btnConfirm, .btnRetake { padding: 16px; border-radius: 16px; }
+}
+
 /* DEBUG */
 .debugLayout { border: 4px solid #00ff00 !important; }
 .debugLayout .templateSection    { background: rgba(255,0,0,0.1);  border: 2px dashed #ff0000; }

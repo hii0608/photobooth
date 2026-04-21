@@ -127,3 +127,11 @@
   color: #3D1C2E;
   letter-spacing: 0.06em;
 }
+
+/* ── 데스크톱: 카드/썸네일 확대 ────────────────────────── */
+@media (min-width: 768px) {
+  .grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+  .card { padding: 20px 14px; min-height: 200px; border-radius: 22px; }
+  .thumbnail, .defaultThumb { width: 120px; height: 120px; }
+  .compositeCanvas { max-width: 150px; max-height: 200px; }
+}
